@@ -4,7 +4,6 @@ import RadicadoDetail from "App/Models/RadicadoDetail";
 export default class RadicadoDetailsController {
   public async index({ response }: HttpContextContract) {
     const radicadoDetailsList = await RadicadoDetail.all();
-
     return response.status(200).send(radicadoDetailsList);
   }
 
@@ -24,15 +23,13 @@ export default class RadicadoDetailsController {
         "DRA_RADICADO",
         id
       );
-      return response
-        .status(200)
-        .json({
-          data: RadicadoDetails,
-          message: { success: "Radicado Encontrado" },
-        });
+      return response.status(200).json({
+        data: RadicadoDetails,
+        message: { success: "Radicado Encontrado" },
+      });
     } catch (err) {
       return response
-        .status(404)
+        .status(200)
         .json({ data: null, message: { error: "Radicado no Encontrado" } });
     }
   }
