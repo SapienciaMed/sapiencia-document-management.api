@@ -24,7 +24,10 @@ export default class RadicadoDetailValidator {
    *    ```
    */
   public schema = schema.create({
-    dra_radicado: schema.string([rules.maxLength(12)]),
+    dra_radicado: schema.string([
+      rules.maxLength(12),
+      rules.unique({ table: "radicado_details", column: "DRA_RADICADO" }),
+    ]),
     dra_fecha_radicado: schema.date(),
     dra_radicado_origen: schema.string([rules.maxLength(12)]),
     dra_fecha_origen: schema.date(),

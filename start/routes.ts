@@ -45,8 +45,38 @@ Route.group(() => {
 }).prefix("/api/v1/document-management");
 
 Route.group(() => {
-  Route.get("/get-by-id/:id", "GeneralConfigurationController.getGeneralConfigurationById");
+  Route.get(
+    "/get-by-id/:id",
+    "GeneralConfigurationController.getGeneralConfigurationById"
+  );
   Route.get("/", "GeneralConfigurationController.getGeneralConfiguration");
-  Route.post("/create", "GeneralConfigurationController.createGeneralConfiguration");
-  Route.put("/update/:id", "GeneralConfigurationController.updateGeneralConfiguration");
+  Route.post(
+    "/create",
+    "GeneralConfigurationController.createGeneralConfiguration"
+  );
+  Route.put(
+    "/update/:id",
+    "GeneralConfigurationController.updateGeneralConfiguration"
+  );
 }).prefix("/api/v1/general-configuration");
+
+Route.group(() => {
+  Route.resource(
+    "/sender-information",
+    "SenderInformationsController"
+  ).apiOnly();
+}).prefix("/api/v1/document-management");
+
+Route.group(() => {
+  Route.resource(
+    "/basic-document",
+    "BasicDocumentInformationsController"
+  ).apiOnly();
+}).prefix("/api/v1/document-management");
+
+Route.group(() => {
+  Route.resource(
+    "/recipient-information",
+    "RecipientInformationsController"
+  ).apiOnly();
+}).prefix("/api/v1/document-management");
