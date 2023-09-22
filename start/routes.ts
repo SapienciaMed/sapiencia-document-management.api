@@ -43,3 +43,24 @@ Route.group(() => {
 Route.group(() => {
   Route.resource("/radicado-details", "RadicadoDetailsController").apiOnly();
 }).prefix("/api/v1/document-management");
+
+Route.group(() => {
+  Route.resource(
+    "/sender-information",
+    "SenderInformationsController"
+  ).apiOnly();
+}).prefix("/api/v1/document-management");
+
+Route.group(() => {
+  Route.resource(
+    "/basic-document",
+    "BasicDocumentInformationsController"
+  ).apiOnly();
+}).prefix("/api/v1/document-management");
+
+Route.group(() => {
+  Route.resource(
+    "/recipient-information",
+    "RecipientInformationsController"
+  ).apiOnly();
+}).prefix("/api/v1/document-management");
