@@ -43,3 +43,10 @@ Route.group(() => {
 Route.group(() => {
   Route.resource("/radicado-details", "RadicadoDetailsController").apiOnly();
 }).prefix("/api/v1/document-management");
+
+Route.group(() => {
+  Route.get("/get-by-id/:id", "GeneralConfigurationController.getGeneralConfigurationById");
+  Route.get("/", "GeneralConfigurationController.getGeneralConfiguration");
+  Route.post("/create", "GeneralConfigurationController.createGeneralConfiguration");
+  Route.put("/update/:id", "GeneralConfigurationController.updateGeneralConfiguration");
+}).prefix("/api/v1/general-configuration");
