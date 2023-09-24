@@ -16,12 +16,17 @@ export default class extends BaseSchema {
       .comment("booleano con posibles valores True o False.");
 
       table
+      .boolean("CGE_INICIAR_SIN_IMAGEN_INTERNO")
+      .nullable()
+      .comment("booleano con posibles valores True o False.");
+
+      table
       .boolean("CGE_DIAS_HABILES")
       .notNullable()
       .comment("configuracion para el reporte de dias habiles");
 
       table
-      .time("CGE_DURACION_ALMUERZO")
+      .integer("CGE_DURACION_ALMUERZO", 20)
       .notNullable()
       .comment("indica la hora de inicio del almuerzo formato 24 horas");
 
@@ -34,6 +39,31 @@ export default class extends BaseSchema {
       .integer("CGE_HORA_ALMUERZO", 20)
       .notNullable()
       .comment("indica la duracion del almuerso");
+
+      table
+      .string("CGE_CORREO_ADMINISTRADOR", 45)
+      .notNullable()
+      .comment("");
+
+      table
+      .string("CGE_RUTAPDF_CREATOR", 255)
+      .notNullable()
+      .comment("");
+
+      table
+      .string("CGE_RUTA_TEMP_PDF", 255)
+      .notNullable()
+      .comment("");
+
+      table
+      .boolean("CGE_ACTIVAR_RANGO_IP")
+      .nullable()
+      .comment("booleano con posibles valores True o False.");
+
+      table
+      .boolean("CGE_COMPRIMIR_IMAGEN")
+      .nullable()
+      .comment("booleano con posibles valores True o False.");
 
       table
       .integer("CGE_ANEXO", 20)
@@ -87,6 +117,11 @@ export default class extends BaseSchema {
 
       table
       .integer("CGE_DETALLE_REGINVENTARIO", 20)
+      .notNullable()
+      .comment("");
+
+      table
+      .integer("CGE_CAUSAL_DEVOLUCION_X_CONDICION", 20)
       .notNullable()
       .comment("");
 
