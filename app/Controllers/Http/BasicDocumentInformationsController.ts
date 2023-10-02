@@ -27,6 +27,33 @@ export default class BasicDocumentInformationsController {
     }
   }
 
+  public async searchByNameAndCode({ request, response }: HttpContextContract) {
+    const name = request.input('nombre');
+    const code = request.input('codigo');
+    try {
+      const query = BasicDocumentInformation.query();
+
+      if (name) {
+        query.orWhere('INF_NOMBRE_ASUNTO', 'LIKE', `%${name}%`);
+      }
+
+      if (code) {
+        query.orWhere('INF_CODE', 'LIKE', `%${code}%`);
+      }
+
+      const subjects = await query.select('*');
+
+      return response.status(200).json({
+        data: subjects,
+        message: { success: "Peticion terminada exitosamente" },
+      });
+    } catch (err) {
+      return response
+        .status(500)
+        .json({ data: null, message: { error: "Ups, hubo un error" } });
+    }
+  }
+
   public async update({}: HttpContextContract) {}
 
   public async destroy({}: HttpContextContract) {}

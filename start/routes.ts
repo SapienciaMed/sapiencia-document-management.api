@@ -70,8 +70,10 @@ Route.group(() => {
 Route.group(() => {
   Route.resource(
     "/basic-document",
-    "BasicDocumentInformationsController"
+    "BasicDocumentInformationsController",
   ).apiOnly();
+
+  Route.get("/search", "BasicDocumentInformationsController.searchByNameAndCode");
 }).prefix("/api/v1/document-management");
 
 Route.group(() => {
