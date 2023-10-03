@@ -32,8 +32,8 @@ export default class SenderInformationsController {
 
   public async destroy({}: HttpContextContract) {}
 
-  public async find({ request, response, params }: HttpContextContract) {
-    const { doc_identidad, entidad, abreviatura, limit, page } = request.body();
+  public async find({ request, response }: HttpContextContract) {
+    const { doc_identidad, entidad } = request.body();
 
     const data = await SenderInformation.query()
       .where("usr_numero_identidad", "like", `%${doc_identidad}%`)
