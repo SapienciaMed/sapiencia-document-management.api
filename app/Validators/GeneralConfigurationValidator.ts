@@ -27,7 +27,13 @@ export default class MeasurementCapacityValidator {
     id: schema.number.optional(),
     email_alarm: schema.boolean(),
     business_days: schema.boolean(),
-    lunch_duration: schema.string(),
+    lunch_duration: schema.number(),
+    start_without_image_internal: schema.boolean(),
+    compress_image: schema.boolean(),
+    ip_range: schema.boolean(),
+    admin_email: schema.string(),
+    lunch_time: schema.number(),
+    time: schema.number(),
     anexo: schema.number(),
     letter: schema.number(),
     expedient: schema.number(),
@@ -39,8 +45,11 @@ export default class MeasurementCapacityValidator {
     series: schema.number(),
     inventory_record: schema.number(),
     inventory_record_detail: schema.number(),
-    temporary_settlement: schema.boolean(),
-    standard_temporary_filing: schema.boolean(),
+    cause_of_return_x_condition: schema.number(),
+    temporary_filing: schema.boolean(),
+    temporary_filing_rules: schema.boolean(),
+    route_creator_path: schema.string(),
+    pdf_temporary_path: schema.string(),
   });
 
   /**
