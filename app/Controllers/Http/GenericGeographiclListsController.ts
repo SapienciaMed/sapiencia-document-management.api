@@ -5,7 +5,7 @@ import Database from "@ioc:Adonis/Lucid/Database";
 export default class GenericGeographiclListsController {
   public async listAll({ response }: HttpContextContract) {
     const genericList = await Database.connection("general")
-      .from("lge_listados_genericos")
+      .from("LGE_LISTADOS_GENERICOS")
       .select(
         "lge_agrupador",
         "lge_elemento_descripcion",
