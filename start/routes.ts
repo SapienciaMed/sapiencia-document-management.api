@@ -65,6 +65,8 @@ Route.group(() => {
     "/sender-information",
     "SenderInformationsController"
   ).apiOnly();
+  //post for table search
+  Route.post("/sender-information/find", "SenderInformationsController.find");
 }).prefix("/api/v1/document-management");
 
 Route.group(() => {
@@ -80,3 +82,9 @@ Route.group(() => {
     "RecipientInformationsController"
   ).apiOnly();
 }).prefix("/api/v1/document-management");
+
+//Generic Lists
+Route.get(
+  "/geographic-list",
+  "GenericGeographiclListsController.listAll"
+).prefix("/api/v1/document-management"); //Paises, departamento y municipios

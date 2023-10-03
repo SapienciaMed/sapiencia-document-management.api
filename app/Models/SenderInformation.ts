@@ -1,5 +1,5 @@
 import { DateTime } from "luxon";
-import { BaseModel, column } from "@ioc:Adonis/Lucid/Orm";
+import { BaseModel, column, computed } from "@ioc:Adonis/Lucid/Orm";
 
 export default class SenderInformation extends BaseModel {
   public static table = "USR_DATOS_BASICOS";
@@ -51,6 +51,11 @@ export default class SenderInformation extends BaseModel {
 
   @column({ columnName: "USR_CARGO" })
   public usr_cargo: number;
+
+  @computed()
+  public get fullName() {
+    return `${this.usr_nombre} ${this.usr_apellidos}`;
+  }
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime;
