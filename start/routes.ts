@@ -73,7 +73,7 @@ Route.group(() => {
   Route.get("/basic-document/search", "BasicDocumentInformationsController.searchByNameAndCode");
   Route.resource(
     "/basic-document",
-    "BasicDocumentInformationsController",
+    "BasicDocumentInformationsController"
   ).apiOnly();
 }).prefix("/api/v1/document-management");
 
@@ -86,6 +86,11 @@ Route.group(() => {
     "RecipientInformationsController"
   ).apiOnly();
 
+}).prefix("/api/v1/document-management");
+
+//Entities
+Route.group(() => {
+  Route.resource("/entities", "EntitiesController").apiOnly();
 }).prefix("/api/v1/document-management");
 
 //Generic Lists
