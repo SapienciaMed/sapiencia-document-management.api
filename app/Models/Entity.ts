@@ -8,7 +8,7 @@ export default class Entity extends BaseModel {
   public ent_codigo: number;
 
   @column({ columnName: "ENT_TIPO_DOCUMENTO" })
-  public ent_tipo_documento: number;
+  public ent_tipo_documento: string;
 
   @column({ columnName: "ENT_NUMERO_IDENTIDAD" })
   public ent_numero_identidad: string;
@@ -19,11 +19,14 @@ export default class Entity extends BaseModel {
   @column({ columnName: "ENT_APELLIDOS" })
   public ent_apellidos: string;
 
+  @column({ columnName: "ENT_RAZON_SOCIAL" })
+  public ent_razon_social: string;
+
   @column({ columnName: "ENT_TIPO_ENTIDAD" })
   public ent_tipo_entidad: number;
 
-  @column({ columnName: "ENT_DESCRIPCION" })
-  public ent_descripcion: string;
+  @column({ columnName: "ENT_ABREVIATURA" })
+  public ent_abreviatura: string;
 
   @column({ columnName: "ENT_DIRECCION" })
   public ent_direccion: string;
@@ -41,7 +44,7 @@ export default class Entity extends BaseModel {
   public ent_observaciones: string;
 
   @column({ columnName: "ENT_PAIS" })
-  public ent_pais: number;
+  public ent_pais: string;
 
   @column({ columnName: "ENT_DEPARTAMENTO" })
   public ent_departamento: number;
@@ -52,12 +55,12 @@ export default class Entity extends BaseModel {
   @column({ columnName: "ENT_ESTADO" })
   public ent_estado: boolean;
 
-  @column({ columnName: "ENT_ABREVIATURA" })
-  public ent_abreviatura: string;
-
   @computed()
   public get fullName() {
-    return `${this.ent_nombres} ${this.ent_apellidos}`;
+    if (this.ent_razon_social == "N/A") {
+      return `${this.ent_nombres} ${this.ent_apellidos}`;
+    }
+    return `${this.ent_razon_social}`;
   }
 
   @column.dateTime({ autoCreate: true })

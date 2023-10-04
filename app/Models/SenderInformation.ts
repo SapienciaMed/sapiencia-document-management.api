@@ -8,7 +8,7 @@ export default class SenderInformation extends BaseModel {
   public dra_codigo: number;
 
   @column({ columnName: "USR_TIPO_IDENTIDAD" })
-  public usr_tipo_identidad: number;
+  public usr_tipo_identidad: string;
 
   @column({ columnName: "USR_NUMERO_IDENTIDAD" })
   public usr_numero_identidad: string;
@@ -32,7 +32,7 @@ export default class SenderInformation extends BaseModel {
   public usr_celular: string;
 
   @column({ columnName: "USR_PAIS" })
-  public usr_pais: number;
+  public usr_pais: string;
 
   @column({ columnName: "USR_DEPARTAMENTO" })
   public usr_departamento: number;
