@@ -10,7 +10,7 @@ export default class extends BaseSchema {
         .unsigned()
         .primary()
         .comment("llave primaria");
-      table.integer("USR_TIPO_IDENTIDAD").notNullable();
+      table.integer("USR_TIPO_IDENTIDAD", 4).notNullable();
       table.string("USR_NUMERO_IDENTIDAD", 30).unique().notNullable();
       table.string("USR_NOMBRE", 50).notNullable();
       table.string("USR_APELLIDOS", 50).notNullable();
@@ -18,7 +18,7 @@ export default class extends BaseSchema {
       table.integer("USR_GENERO").notNullable();
       table.string("USR_NUMERO_CONTACTO", 20).notNullable();
       table.string("USR_CELULAR", 20).notNullable();
-      table.integer("USR_PAIS").notNullable();
+      table.string("USR_PAIS", 5).notNullable();
       table.integer("USR_DEPARTAMENTO").notNullable();
       table.integer("USR_MUNICIPIO").notNullable();
       table.integer("USR_BARRIO").notNullable();

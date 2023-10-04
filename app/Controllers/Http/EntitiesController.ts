@@ -8,16 +8,22 @@ export default class EntitiesController {
   }
 
   public async store({ request, response }: HttpContextContract) {
-    const entity = new Entity();
+    try {
+      const entity = new Entity();
+      //const data = await request.validate(GeneralConfigurationValidator);
+      entity.fill(request.all());
+      await entity.save();
 
-    //const data = await request.validate(GeneralConfigurationValidator);
-    entity.fill(request.all());
-    await entity.save();
-
-    return response.status(200).json({
-      data: entity,
-      message: { success: "Entidad Registrada" },
-    });
+      return response.status(200).json({
+        data: entity,
+        message: { success: "Creación exitosa" },
+      });
+    } catch (err) {
+      console.log(err.message);
+      return response
+        .status(500)
+        .json({ data: null, message: { error: "Ups, hubo un error" } });
+    }
   }
 
   public async show({ request, response }: HttpContextContract) {
@@ -37,7 +43,7 @@ export default class EntitiesController {
       });
     } catch (err) {
       return response
-        .status(400)
+        .status(500)
         .json({ data: null, message: { error: err.message } });
     }
   }
