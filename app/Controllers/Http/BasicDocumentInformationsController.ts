@@ -28,8 +28,8 @@ export default class BasicDocumentInformationsController {
   }
 
   public async searchByNameAndCode({ request, response }: HttpContextContract) {
-    const name = request.input('name');
-    const code = request.input('code');
+    const name = request.input('nombre');
+    const code = request.input('codigo');
 
     try {
       const query = BasicDocumentInformation.query();

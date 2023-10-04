@@ -16,7 +16,7 @@ export default class RecipientInformationsController {
         "USR_NUMERO_IDENTIDAD",
         id
       );
-      console.log(senderData);
+
       return response.status(200).json({
         data: senderData,
         message: { success: "Destinatario Encontrado" },
@@ -25,6 +25,42 @@ export default class RecipientInformationsController {
       return response
         .status(200)
         .json({ data: null, message: { error: "Destinatario no Encontrado" } });
+    }
+  }
+
+  public async searchByNamesAndCode({ request, response }: HttpContextContract) {
+    const name = request.input('nombre');
+    const last_name = request.input('apellido');
+    const id = request.input('id');
+
+    console.log(name, last_name, id)
+
+    try {
+      const query = RecipientInformation.query();
+
+      if (name) {
+        query.orWhere('USR_NOMBRE', 'LIKE', `%${name}%`);
+      }
+
+      if (last_name) {
+        query.orWhere('USR_APELLIDOS', 'LIKE', `%${last_name}%`);
+      }
+
+      if (id) {
+        query.orWhere('USR_NUMERO_IDENTIDAD', 'LIKE', `%${id}%`);
+      }
+
+      const subjects = await query.select('*');
+
+      return response.status(200).json({
+        data: subjects,
+        message: { success: "Peticion terminada exitosamente" },
+      });
+    } catch (err) {
+      console.log(err)
+      return response
+        .status(500)
+        .json({ data: null, message: { error: "Ups, hubo un error" } });
     }
   }
 

@@ -70,19 +70,22 @@ Route.group(() => {
 }).prefix("/api/v1/document-management");
 
 Route.group(() => {
+  Route.get("/basic-document/search", "BasicDocumentInformationsController.searchByNameAndCode");
   Route.resource(
     "/basic-document",
     "BasicDocumentInformationsController",
   ).apiOnly();
-
-  Route.get("/search", "BasicDocumentInformationsController.searchByNameAndCode");
 }).prefix("/api/v1/document-management");
 
+
 Route.group(() => {
+  Route.get("/recipient-information/search", "RecipientInformationsController.searchByNamesAndCode");
+
   Route.resource(
     "/recipient-information",
     "RecipientInformationsController"
   ).apiOnly();
+
 }).prefix("/api/v1/document-management");
 
 //Generic Lists

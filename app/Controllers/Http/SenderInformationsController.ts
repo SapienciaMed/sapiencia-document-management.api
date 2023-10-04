@@ -16,7 +16,7 @@ export default class SenderInformationsController {
         "USR_NUMERO_IDENTIDAD",
         id
       );
-      console.log(senderData);
+
       return response.status(200).json({
         data: senderData,
         message: { success: "Remitente Encontrado" },
