@@ -17,7 +17,7 @@ export default class extends BaseSchema {
       table.string("ENT_RAZON_SOCIAL", 100).nullable();
       table.integer("ENT_TIPO_ENTIDAD").notNullable();
       //table.string("ENT_DESCRIPCION", 50).nullable();
-      table.string("ENT_ABREVIATURA", 10).nullable();
+      table.string("ENT_ABREVIATURA", 15).nullable();
       table.string("ENT_DIRECCION", 100).notNullable();
       table.string("ENT_EMAIL", 100).notNullable();
       table.string("ENT_CONTACTO_UNO", 20).nullable();

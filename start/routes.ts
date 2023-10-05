@@ -96,7 +96,7 @@ Route.group(() => {
 }).prefix("/api/v1/document-management");
 
 //Generic Lists
-Route.get(
-  "/geographic-list",
-  "GenericGeographiclListsController.listAll"
-).prefix("/api/v1/document-management"); //Paises, departamento y municipios
+Route.group(() => {
+  Route.get("/geographic-list", "GenericGeographiclListsController.listAll"); //Paises, departamento y municipios
+  Route.get("/type-entity-list", "GenericListController.getTypesEntity");
+}).prefix("/api/v1/document-management/generic-list");
