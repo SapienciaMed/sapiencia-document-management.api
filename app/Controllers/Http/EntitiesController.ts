@@ -51,4 +51,21 @@ export default class EntitiesController {
   public async update({}: HttpContextContract) {}
 
   public async destroy({}: HttpContextContract) {}
+
+  public async find({ request, response }: HttpContextContract) {
+    const { doc_identidad, entidad, abreviatura } = request.body();
+
+    const data = await Entity.query()
+      .where("ent_numero_identidad", "like", `%${doc_identidad}%`)
+      .orWhere("ent_nombres", "like", `%${entidad}%`)
+      .orWhere("ent_apellidos", "like", `%${entidad}%`)
+      .orWhere("ent_razon_social", "like", `%${entidad}%`)
+      .orWhere("ent_abreviatura", "like", `%${abreviatura}%`);
+
+    if (data.length > 0) {
+      return response.status(200).send(data);
+    } else {
+      return response.json([]);
+    }
+  }
 }
