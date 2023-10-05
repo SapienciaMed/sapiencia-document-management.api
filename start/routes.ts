@@ -91,6 +91,8 @@ Route.group(() => {
 //Entities
 Route.group(() => {
   Route.resource("/entities", "EntitiesController").apiOnly();
+  //post for table search
+  Route.post("/entities/find", "EntitiesController.find");
 }).prefix("/api/v1/document-management");
 
 //Generic Lists

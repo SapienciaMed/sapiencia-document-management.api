@@ -19,12 +19,12 @@ export default class SenderInformationsController {
 
       return response.status(200).json({
         data: senderData,
-        message: { success: "Remitente Encontrado" },
+        message: { success: "Remitente encontrado" },
       });
     } catch (err) {
       return response
         .status(200)
-        .json({ data: null, message: { error: "Remitente no Encontrado" } });
+        .json({ data: null, message: { error: "Remitente no encontrado" } });
     }
   }
 
