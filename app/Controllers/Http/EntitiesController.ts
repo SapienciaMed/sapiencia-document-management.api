@@ -48,7 +48,22 @@ export default class EntitiesController {
     }
   }
 
-  public async update({}: HttpContextContract) {}
+  public async update({ request, response, params }: HttpContextContract) {
+    try {
+      const id = params.id;
+      const entity = await Entity.findOrFail(id);
+      //await entity.merge(request.all()).save();
+      entity.fill(request.all());
+      entity.save();
+      return response
+        .status(200)
+        .json({ data: entity, message: { success: "Entidad actualizada" } });
+    } catch (error) {
+      return response
+        .status(500)
+        .json({ data: null, message: { error: error.message } });
+    }
+  }
 
   public async destroy({}: HttpContextContract) {}
 
