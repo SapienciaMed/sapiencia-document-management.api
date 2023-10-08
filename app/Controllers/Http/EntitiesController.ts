@@ -57,7 +57,7 @@ export default class EntitiesController {
       entity.save();
       return response
         .status(200)
-        .json({ data: entity, message: { success: "Entidad actualizada" } });
+        .json({ data: entity, message: { success: "Edición Exitosa" } });
     } catch (error) {
       return response
         .status(500)
