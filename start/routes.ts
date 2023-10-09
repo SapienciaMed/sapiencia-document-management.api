@@ -90,6 +90,7 @@ Route.group(() => {
 
 //Entities
 Route.group(() => {
+  Route.get("/entities/search", "EntitiesController.search");
   Route.resource("/entities", "EntitiesController").apiOnly();
   //post for table search
   Route.post("/entities/find", "EntitiesController.find");
