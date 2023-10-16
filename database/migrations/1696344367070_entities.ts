@@ -12,9 +12,9 @@ export default class extends BaseSchema {
         .comment("llave primaria");
       table.string("ENT_TIPO_DOCUMENTO", 4).notNullable();
       table.string("ENT_NUMERO_IDENTIDAD", 30).unique().notNullable();
-      table.string("ENT_NOMBRES", 50).notNullable();
-      table.string("ENT_APELLIDOS", 50).notNullable();
-      table.string("ENT_RAZON_SOCIAL", 100).nullable();
+      table.string("ENT_NOMBRES", 50).notNullable().defaultTo("N/A");
+      table.string("ENT_APELLIDOS", 50).notNullable().defaultTo("N/A");
+      table.string("ENT_RAZON_SOCIAL", 100).nullable().defaultTo("N/A");
       table.integer("ENT_TIPO_ENTIDAD").notNullable();
       //table.string("ENT_DESCRIPCION", 50).nullable();
       table.string("ENT_ABREVIATURA", 15).nullable();

@@ -1,5 +1,6 @@
-import { BaseModel, column } from "@ioc:Adonis/Lucid/Orm";
+import { BaseModel, HasMany, column, hasMany } from "@ioc:Adonis/Lucid/Orm";
 import { DateTime } from "luxon";
+import RelatedAnswer from "./RelatedAnswer";
 
 export default class RadicadoDetail extends BaseModel {
   public static table = "radicado_details";
@@ -16,6 +17,9 @@ export default class RadicadoDetail extends BaseModel {
   })
   public dra_fecha_radicado: DateTime;
 
+  @column({ columnName: "DRA_TIPO_RADICADO" })
+  public dra_tipo_radicado: number;
+
   @column({ columnName: "DRA_RADICADO_ORIGEN" })
   public dra_radicado_origen: string;
 
@@ -25,6 +29,42 @@ export default class RadicadoDetail extends BaseModel {
   })
   public dra_fecha_origen: DateTime;
 
-  @column({ columnName: "DRA_NOMBRE_APELLIDOS" })
-  public dra_nombre_apellidos: string;
+  @column({ columnName: "DRA_RADICADO_POR" })
+  public dra_radicado_por: string;
+
+  @column({ columnName: "DRA_NOMBRE_RADICADOR" })
+  public dra_nombre_radicador: string;
+
+  @column({ columnName: "DRA_ID_REMITENTE" })
+  public dra_id_remitente: string;
+
+  @column({ columnName: "DRA_CODIGO_ASUNTO" })
+  public dra_codigo_asunto: number;
+
+  @column({ columnName: "DRA_ID_DESTINATARIO" })
+  public dra_id_destinatario: string;
+
+  @column({ columnName: "DRA_OPCIONES_RESPUESTA" })
+  public dra_opciones_respuesta: number;
+
+  @column({ columnName: "DRA_REFERENCIA" })
+  public dra_referencia: string;
+
+  @column({ columnName: "DRA_OBSERVACION" })
+  public dra_observacion: string;
+
+  @column({ columnName: "DRA_NUM_ANEXOS" })
+  public dra_num_anexos: number;
+
+  @column({ columnName: "DRA_NUM_FOLIOS" })
+  public dra_num_folios: number;
+
+  @column({ columnName: "DRA_NUM_CAJAS" })
+  public dra_num_cajas: number;
+
+  @hasMany(() => RelatedAnswer, {
+    foreignKey: "rrr_id_radicado",
+    localKey: "dra_radicado",
+  })
+  public rn_radicado_details_to_related_answer: HasMany<typeof RelatedAnswer>;
 }

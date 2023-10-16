@@ -3,7 +3,10 @@ import RadicadoDetail from "App/Models/RadicadoDetail";
 
 export default class RadicadoDetailsController {
   public async index({ response }: HttpContextContract) {
-    const radicadoDetailsList = await RadicadoDetail.all();
+    const radicadoDetailsList = await RadicadoDetail.query().preload(
+      "rn_radicado_details_to_related_answer"
+    );
+
     return response.status(200).send(radicadoDetailsList);
   }
 
