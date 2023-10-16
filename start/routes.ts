@@ -40,8 +40,14 @@ Route.group(() => {
 }).prefix("/api/v1/generic-list");
 // .middleware("auth");
 
+//Radicado Details
 Route.group(() => {
   Route.resource("/radicado-details", "RadicadoDetailsController").apiOnly();
+}).prefix("/api/v1/document-management");
+
+//Related Answers
+Route.group(() => {
+  Route.resource("/related-answers", "RelatedAnswersController").apiOnly();
 }).prefix("/api/v1/document-management");
 
 Route.group(() => {
@@ -70,22 +76,26 @@ Route.group(() => {
 }).prefix("/api/v1/document-management");
 
 Route.group(() => {
-  Route.get("/basic-document/search", "BasicDocumentInformationsController.searchByNameAndCode");
+  Route.get(
+    "/basic-document/search",
+    "BasicDocumentInformationsController.searchByNameAndCode"
+  );
   Route.resource(
     "/basic-document",
     "BasicDocumentInformationsController"
   ).apiOnly();
 }).prefix("/api/v1/document-management");
 
-
 Route.group(() => {
-  Route.get("/recipient-information/search", "RecipientInformationsController.searchByNamesAndCode");
+  Route.get(
+    "/recipient-information/search",
+    "RecipientInformationsController.searchByNamesAndCode"
+  );
 
   Route.resource(
     "/recipient-information",
     "RecipientInformationsController"
   ).apiOnly();
-
 }).prefix("/api/v1/document-management");
 
 //Entities
