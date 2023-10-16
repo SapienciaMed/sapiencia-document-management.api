@@ -54,12 +54,15 @@ export default class RelatedAnswersController {
         (item) => item.rn_related_answer_to_radicado_detail_respuestas
       );
 
-      return response.status(200).send(new ApiResponse(
-        radicadosList,
-        EResponseCodes.OK,
-        "Datos cargados con éxito"
-      )
-    ););
+      return response
+        .status(200)
+        .send(
+          new ApiResponse(
+            radicadosList,
+            EResponseCodes.OK,
+            "Datos cargados con éxito"
+          )
+        );
     } catch (error) {
       return response
         .status(400)
