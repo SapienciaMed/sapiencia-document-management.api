@@ -92,7 +92,30 @@ export default class RelatedAnswersController {
 
   public async update({}: HttpContextContract) {}
 
-  public async destroy({}: HttpContextContract) {}
+  public async destroy({ request, response }: HttpContextContract) {
+    const { id, radicadoId } = request.params();
+
+    try {
+      const deletedRelatedAnswer = await RelatedAnswer.query()
+        .where("rrr_id_radicado", "=", radicadoId)
+        .andWhere("rrr_id_respuestas_relacionadas", "=", id)
+        .delete();
+      return response
+        .status(200)
+        .send(
+          new ApiResponse(
+            deletedRelatedAnswer,
+            EResponseCodes.OK,
+            "Datos eliminados con éxito"
+          )
+        );
+    } catch (error) {
+      console.log(error.message);
+      return response
+        .status(400)
+        .send(new ApiResponse([], EResponseCodes.FAIL, error.message));
+    }
+  }
 
   public async findByIdAndType({ request, response }: HttpContextContract) {
     const { id, type } = request.params();

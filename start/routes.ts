@@ -48,6 +48,10 @@ Route.group(() => {
 //Related Answers
 Route.group(() => {
   Route.resource("/related-answers", "RelatedAnswersController").apiOnly();
+  Route.delete(
+    "/related-answers/:id/:radicadoId",
+    "RelatedAnswersController.destroy"
+  );
   Route.get(
     "/answer-document/:id/type/:type",
     "RelatedAnswersController.findByIdAndType"
