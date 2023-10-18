@@ -34,4 +34,18 @@ export default class GenericListController {
 
     return response.status(200).send(genericList);
   }
+
+  public async getTypesRadicado({ response }: HttpContextContract) {
+    const genericList = await Database.connection("general")
+      .from("LGE_LISTADOS_GENERICOS")
+      .select(
+        "lge_agrupador",
+        "lge_elemento_descripcion",
+        "lge_elemento_codigo",
+        "lge_campos_adicionales"
+      )
+      .where("lge_agrupador", "=", "TIPOS_RADICADOS");
+
+    return response.status(200).send(genericList);
+  }
 }

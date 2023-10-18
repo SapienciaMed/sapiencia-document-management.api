@@ -1,6 +1,14 @@
-import { BaseModel, HasMany, column, hasMany } from "@ioc:Adonis/Lucid/Orm";
+import {
+  BaseModel,
+  HasMany,
+  HasOne,
+  column,
+  hasMany,
+  hasOne,
+} from "@ioc:Adonis/Lucid/Orm";
 import { DateTime } from "luxon";
 import RelatedAnswer from "./RelatedAnswer";
+import Entity from "./Entity";
 
 export default class RadicadoDetail extends BaseModel {
   public static table = "radicado_details";
@@ -67,4 +75,16 @@ export default class RadicadoDetail extends BaseModel {
     localKey: "dra_radicado",
   })
   public rn_radicado_details_to_related_answer: HasMany<typeof RelatedAnswer>;
+
+  @hasOne(() => Entity, {
+    localKey: "dra_id_remitente",
+    foreignKey: "ent_numero_identidad",
+  })
+  public rn_radicado_remitente_to_entity: HasOne<typeof Entity>;
+
+  @hasOne(() => Entity, {
+    localKey: "dra_id_destinatario",
+    foreignKey: "ent_numero_identidad",
+  })
+  public rn_radicado_destinatario_to_entity: HasOne<typeof Entity>;
 }

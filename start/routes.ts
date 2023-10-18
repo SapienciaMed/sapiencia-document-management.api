@@ -48,6 +48,10 @@ Route.group(() => {
 //Related Answers
 Route.group(() => {
   Route.resource("/related-answers", "RelatedAnswersController").apiOnly();
+  Route.get(
+    "/answer-document/:id/type/:type",
+    "RelatedAnswersController.findByIdAndType"
+  );
 }).prefix("/api/v1/document-management");
 
 Route.group(() => {
@@ -110,4 +114,5 @@ Route.group(() => {
 Route.group(() => {
   Route.get("/geographic-list", "GenericGeographiclListsController.listAll"); //Paises, departamento y municipios
   Route.get("/type-entity-list", "GenericListController.getTypesEntity");
+  Route.get("/type-radicado-list", "GenericListController.getTypesRadicado");
 }).prefix("/api/v1/document-management/generic-list");
