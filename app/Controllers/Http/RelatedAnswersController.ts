@@ -26,7 +26,29 @@ export default class RelatedAnswersController {
     // return response.status(200).send(radicadoDetailsList);
   }
 
-  public async store({}: HttpContextContract) {}
+  public async store({ request, response }: HttpContextContract) {
+    try {
+      const relatedAnswer = new RelatedAnswer();
+      //const data = await request.validate(GeneralConfigurationValidator);
+      relatedAnswer.fill(request.all());
+      await relatedAnswer.save();
+
+      return response
+        .status(200)
+        .send(
+          new ApiResponse(
+            relatedAnswer,
+            EResponseCodes.OK,
+            "Datos cargados con éxito"
+          )
+        );
+    } catch (error) {
+      console.log(error.message);
+      return response
+        .status(400)
+        .send(new ApiResponse([], EResponseCodes.FAIL, error.message));
+    }
+  }
 
   public async show({ response, request }: HttpContextContract) {
     const { id } = request.params();
@@ -74,6 +96,7 @@ export default class RelatedAnswersController {
 
   public async findByIdAndType({ request, response }: HttpContextContract) {
     const { id, type } = request.params();
+    console.log(id, type, "id, type");
     try {
       const RadicadoByIdAndType = RadicadoDetail.query();
 
