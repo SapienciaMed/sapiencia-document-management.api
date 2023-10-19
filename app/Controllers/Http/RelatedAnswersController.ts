@@ -39,7 +39,9 @@ export default class RelatedAnswersController {
           new ApiResponse(
             relatedAnswer,
             EResponseCodes.OK,
-            "Datos cargados con éxito"
+            `Radicado ${
+              request.body().rrr_id_respuestas_relacionadas
+            } relacionado con éxito`
           )
         );
     } catch (error) {
