@@ -25,6 +25,9 @@ export default class RadicadoDetail extends BaseModel {
   })
   public dra_fecha_radicado: DateTime;
 
+  @column({ columnName: "DRA_TIPO_DOCUMENTO_RADICADO" })
+  public dra_tipo_documento_radicado: string;
+
   @column({ columnName: "DRA_TIPO_RADICADO" })
   public dra_tipo_radicado: number;
 

@@ -42,6 +42,7 @@ Route.group(() => {
 
 //Radicado Details
 Route.group(() => {
+  Route.get("/radicado-details/searchByRecipient", "RadicadoDetailsController.searchByRecipient");
   Route.resource("/radicado-details", "RadicadoDetailsController").apiOnly();
 }).prefix("/api/v1/document-management");
 
@@ -88,6 +89,7 @@ Route.group(() => {
     "/basic-document/search",
     "BasicDocumentInformationsController.searchByNameAndCode"
   );
+
   Route.resource(
     "/basic-document",
     "BasicDocumentInformationsController"
