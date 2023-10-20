@@ -21,8 +21,8 @@ export default class extends BaseSchema {
       table.string("DRA_NOMBRE_RADICADOR", 100).notNullable();
       table.string("DRA_ID_REMITENTE", 30).notNullable();
       table.integer("DRA_CODIGO_ASUNTO").unsigned().notNullable();
-      //table.integer("DRA_TIPO_ASUNTO").unsigned().notNullable();
-      //table.integer("DRA_PRIORIDAD_ASUNTO").unsigned().notNullable();
+      table.integer("DRA_TIPO_ASUNTO").unsigned().notNullable();
+      table.integer("DRA_PRIORIDAD_ASUNTO").unsigned().notNullable();
       table.string("DRA_ID_DESTINATARIO", 30).notNullable();
       table.integer("DRA_OPCIONES_RESPUESTA").unsigned().notNullable();
       table.text("DRA_REFERENCIA").nullable();
