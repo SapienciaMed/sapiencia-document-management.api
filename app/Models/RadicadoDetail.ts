@@ -52,6 +52,12 @@ export default class RadicadoDetail extends BaseModel {
   @column({ columnName: "DRA_CODIGO_ASUNTO" })
   public dra_codigo_asunto: number;
 
+  @column({ columnName: "DRA_TIPO_ASUNTO" })
+  public dra_tipo_asunto: number;
+
+  @column({ columnName: "DRA_PRIORIDAD_ASUNTO" })
+  public dra_prioridad_asunto: number;
+
   @column({ columnName: "DRA_ID_DESTINATARIO" })
   public dra_id_destinatario: string;
 
