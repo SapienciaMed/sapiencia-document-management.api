@@ -43,6 +43,7 @@ Route.group(() => {
 //Radicado Details
 Route.group(() => {
   Route.get("/radicado-details/searchByRecipient", "RadicadoDetailsController.searchByRecipient");
+  Route.get("/radicado-details/getSummary", "RadicadoDetailsController.getSummary");
   Route.resource("/radicado-details", "RadicadoDetailsController").apiOnly();
 }).prefix("/api/v1/document-management");
 
