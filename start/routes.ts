@@ -42,7 +42,21 @@ Route.group(() => {
 
 //Radicado Details
 Route.group(() => {
-  Route.get("/radicado-details/searchByRecipient", "RadicadoDetailsController.searchByRecipient");
+  Route.get(
+    "/radicado-details/searchByRecipient",
+    "RadicadoDetailsController.searchByRecipient"
+  );
+
+  Route.get(
+    "/radicado-details/find-by-id/:id",
+    "RadicadoDetailsController.findById"
+  );
+
+  Route.get(
+    "/radicado-details/find-all/",
+    "RadicadoDetailsController.findById"
+  );
+
   Route.resource("/radicado-details", "RadicadoDetailsController").apiOnly();
 }).prefix("/api/v1/document-management");
 
