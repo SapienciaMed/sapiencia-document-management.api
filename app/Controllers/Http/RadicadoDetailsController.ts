@@ -148,6 +148,160 @@ export default class RadicadoDetailsController {
     }
   }
 
+  public async getSummaryRecipients({ request, response }: HttpContextContract) {
+    try {
+      const id = request.input("id-destinatario");
+      const query = Database.from('radicado_details as rd')
+        .select(
+          Database.raw(`
+              CASE
+                  WHEN rd.DRA_FECHA_EVACUACION_SALIDA IS NULL THEN
+                      CASE
+                          WHEN DATEDIFF(CURDATE(), rd.DRA_FECHA_RADICADO) > 15 THEN 'documentos_vencidos_sin_tramitar'
+                          ELSE 'documentos_en_fase_inicial_de_tramite'
+                      END
+                  ELSE
+                      CASE
+                          WHEN DATEDIFF(rd.DRA_FECHA_EVACUACION_SALIDA, rd.DRA_FECHA_RADICADO) / DATEDIFF(CURDATE(), rd.DRA_FECHA_RADICADO) <= 0.5 THEN 'documentos_en_fase_inicial_de_tramite'
+                          WHEN DATEDIFF(rd.DRA_FECHA_EVACUACION_SALIDA, rd.DRA_FECHA_RADICADO) / DATEDIFF(CURDATE(), rd.DRA_FECHA_RADICADO) <= 0.8 THEN 'documentos_a_tramitar_prontamente'
+                          WHEN DATEDIFF(rd.DRA_FECHA_EVACUACION_SALIDA, rd.DRA_FECHA_RADICADO) / DATEDIFF(CURDATE(), rd.DRA_FECHA_RADICADO) <= 1.0 THEN 'documentos_proximos_a_vencerse'
+                          ELSE 'documentos_vencidos_sin_tramitar'
+                      END
+              END as estado_documento
+          `)
+        ).leftJoin(
+          "ENT_ENTIDAD as ent1",
+          "rd.DRA_ID_DESTINATARIO",
+          "ent1.ENT_NUMERO_IDENTIDAD"
+        )
+        .leftJoin(
+          "RCD_RADICADO_COPIAS_DESTINATARIO as rcd",
+          "rd.DRA_RADICADO",
+          "rcd.RCD_RADICADO"
+        );
+
+      query.select(Database.raw('COUNT(*) as contador_estado'));
+
+      query.groupByRaw(`
+          CASE
+              WHEN rd.DRA_FECHA_EVACUACION_SALIDA IS NULL THEN
+                  CASE
+                      WHEN DATEDIFF(CURDATE(), rd.DRA_FECHA_RADICADO) > 15 THEN 'documentos_vencidos_sin_tramitar'
+                      ELSE 'documentos_en_fase_inicial_de_tramite'
+                  END
+              ELSE
+                  CASE
+                      WHEN DATEDIFF(rd.DRA_FECHA_EVACUACION_SALIDA, rd.DRA_FECHA_RADICADO) / DATEDIFF(CURDATE(), rd.DRA_FECHA_RADICADO) <= 0.5 THEN 'documentos_en_fase_inicial_de_tramite'
+                      WHEN DATEDIFF(rd.DRA_FECHA_EVACUACION_SALIDA, rd.DRA_FECHA_RADICADO) / DATEDIFF(CURDATE(), rd.DRA_FECHA_RADICADO) <= 0.8 THEN 'documentos_a_tramitar_prontamente'
+                      WHEN DATEDIFF(rd.DRA_FECHA_EVACUACION_SALIDA, rd.DRA_FECHA_RADICADO) / DATEDIFF(CURDATE(), rd.DRA_FECHA_RADICADO) <= 1.0 THEN 'documentos_proximos_a_vencerse'
+                      ELSE 'documentos_vencidos_sin_tramitar'
+                  END
+          END
+      `);
+
+      query
+      .where("rd.DRA_ID_DESTINATARIO", id)
+      .orWhere("rcd.RCD_ID_DESTINATARIO", id);
+
+      const totalQuery = Database.from('radicado_details as rd')
+        .select(Database.raw('COUNT(*) as contador_total'));
+
+      const [result, totalResult] = await Promise.all([query, totalQuery]);
+
+      const responseObj = {
+        documentos_vencidos_sin_tramitar: 0,
+        documentos_en_fase_inicial_de_tramite: 0,
+        documentos_a_tramitar_prontamente: 0,
+        documentos_proximos_a_vencerse: 0,
+        total: 0,
+      };
+
+      result.forEach((item) => {
+        responseObj[item.estado_documento] = item.contador_estado;
+      });
+
+      responseObj.total = totalResult[0].contador_total;
+
+      return response.status(200).json({
+        data: responseObj,
+        message: { success: "Búsqueda exitosa" },
+      });
+    } catch (err) {
+      console.log(err);
+      return response.status(500).json({ data: null, message: { error: "Hubo un error" } });
+    }
+  }
+
+  public async getSummaryFileds({ response }: HttpContextContract) {
+    try {
+      const query = Database.from('radicado_details as rd')
+        .select(
+          Database.raw(`
+              CASE
+                  WHEN rd.DRA_FECHA_EVACUACION_SALIDA IS NULL THEN
+                      CASE
+                          WHEN DATEDIFF(CURDATE(), rd.DRA_FECHA_RADICADO) > 15 THEN 'documentos_vencidos_sin_tramitar'
+                          ELSE 'documentos_en_fase_inicial_de_tramite'
+                      END
+                  ELSE
+                      CASE
+                          WHEN DATEDIFF(rd.DRA_FECHA_EVACUACION_SALIDA, rd.DRA_FECHA_RADICADO) / DATEDIFF(CURDATE(), rd.DRA_FECHA_RADICADO) <= 0.5 THEN 'documentos_en_fase_inicial_de_tramite'
+                          WHEN DATEDIFF(rd.DRA_FECHA_EVACUACION_SALIDA, rd.DRA_FECHA_RADICADO) / DATEDIFF(CURDATE(), rd.DRA_FECHA_RADICADO) <= 0.8 THEN 'documentos_a_tramitar_prontamente'
+                          WHEN DATEDIFF(rd.DRA_FECHA_EVACUACION_SALIDA, rd.DRA_FECHA_RADICADO) / DATEDIFF(CURDATE(), rd.DRA_FECHA_RADICADO) <= 1.0 THEN 'documentos_proximos_a_vencerse'
+                          ELSE 'documentos_vencidos_sin_tramitar'
+                      END
+              END as estado_documento
+          `)
+        );
+
+      query.select(Database.raw('COUNT(*) as contador_estado'));
+
+      query.groupByRaw(`
+          CASE
+              WHEN rd.DRA_FECHA_EVACUACION_SALIDA IS NULL THEN
+                  CASE
+                      WHEN DATEDIFF(CURDATE(), rd.DRA_FECHA_RADICADO) > 15 THEN 'documentos_vencidos_sin_tramitar'
+                      ELSE 'documentos_en_fase_inicial_de_tramite'
+                  END
+              ELSE
+                  CASE
+                      WHEN DATEDIFF(rd.DRA_FECHA_EVACUACION_SALIDA, rd.DRA_FECHA_RADICADO) / DATEDIFF(CURDATE(), rd.DRA_FECHA_RADICADO) <= 0.5 THEN 'documentos_en_fase_inicial_de_tramite'
+                      WHEN DATEDIFF(rd.DRA_FECHA_EVACUACION_SALIDA, rd.DRA_FECHA_RADICADO) / DATEDIFF(CURDATE(), rd.DRA_FECHA_RADICADO) <= 0.8 THEN 'documentos_a_tramitar_prontamente'
+                      WHEN DATEDIFF(rd.DRA_FECHA_EVACUACION_SALIDA, rd.DRA_FECHA_RADICADO) / DATEDIFF(CURDATE(), rd.DRA_FECHA_RADICADO) <= 1.0 THEN 'documentos_proximos_a_vencerse'
+                      ELSE 'documentos_vencidos_sin_tramitar'
+                  END
+          END
+      `);
+
+      const totalQuery = Database.from('radicado_details as rd')
+        .select(Database.raw('COUNT(*) as contador_total'));
+
+      const [result, totalResult] = await Promise.all([query, totalQuery]);
+
+      const responseObj = {
+        documentos_vencidos_sin_tramitar: 0,
+        documentos_en_fase_inicial_de_tramite: 0,
+        documentos_a_tramitar_prontamente: 0,
+        documentos_proximos_a_vencerse: 0,
+        total: 0,
+      };
+
+      result.forEach((item) => {
+        responseObj[item.estado_documento] = item.contador_estado;
+      });
+
+      responseObj.total = totalResult[0].contador_total;
+
+      return response.status(200).json({
+        data: responseObj,
+        message: { success: "Búsqueda exitosa" },
+      });
+    } catch (err) {
+      console.log(err);
+      return response.status(500).json({ data: null, message: { error: "Hubo un error" } });
+    }
+  }
+
   public async update({}: HttpContextContract) {}
 
   public async destroy({}: HttpContextContract) {}
