@@ -371,7 +371,7 @@ export default class RadicadoDetailsController {
       }
 
       const bucketName = 'sapiencia-document-management';
-      const storage = new Storage({ keyFilename: process.env.GCLOUD_KEYFILE });
+      const storage = new Storage();
       const bucket = storage.bucket(bucketName);
 
       for (const file of files) {
