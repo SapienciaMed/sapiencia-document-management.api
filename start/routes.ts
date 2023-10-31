@@ -49,6 +49,7 @@ Route.group(() => {
 
   Route.get("/radicado-details/getSummaryRecipients", "RadicadoDetailsController.getSummaryRecipients");
   Route.get("/radicado-details/getSummaryFileds", "RadicadoDetailsController.getSummaryFileds");
+  Route.post("/radicado-details/massiveIndexing", "RadicadoDetailsController.massiveIndexing");
 
   Route.get(
     "/radicado-details/find-by-id/:id",
