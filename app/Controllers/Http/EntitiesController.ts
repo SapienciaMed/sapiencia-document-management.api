@@ -85,38 +85,42 @@ export default class EntitiesController {
   }
 
   public async search({ request, response }: HttpContextContract) {
-    const ent_tipo_documento = request.input('ent_tipo_documento');
-    const ent_numero_identidad = request.input('ent_numero_identidad');
-    const ent_nombres = request.input('ent_nombres');
+    const ent_tipo_documento = request.input("ent_tipo_documento");
+    const ent_numero_identidad = request.input("ent_numero_identidad");
+    const ent_nombres = request.input("ent_nombres");
 
     try {
       const query = Entity.query();
 
       if (ent_tipo_documento) {
-        query.andWhere('ENT_TIPO_DOCUMENTO', 'LIKE', `%${ent_tipo_documento}%`);
+        query.andWhere("ENT_TIPO_DOCUMENTO", "LIKE", `%${ent_tipo_documento}%`);
       }
 
       if (ent_numero_identidad) {
-        query.andWhere('ENT_NUMERO_IDENTIDAD', 'LIKE', `%${ent_numero_identidad}%`);
+        query.andWhere(
+          "ENT_NUMERO_IDENTIDAD",
+          "LIKE",
+          `%${ent_numero_identidad}%`
+        );
       }
 
       if (ent_nombres) {
-        let field = 'ENT_NOMBRES';
+        let field = "ENT_NOMBRES";
         if (ent_tipo_documento == "NIT") {
-          field = 'ENT_RAZON_SOCIAL';
+          field = "ENT_RAZON_SOCIAL";
         }
 
-        query.andWhere(field, 'LIKE', `%${ent_nombres}%`);
+        query.andWhere(field, "LIKE", `%${ent_nombres}%`);
       }
 
-      const data = await query.select('*');
+      const data = await query.select("*");
 
       return response.status(200).json({
         data,
         message: { success: "Peticion terminada exitosamente" },
       });
     } catch (err) {
-      console.log(err)
+      console.log(err);
       return response
         .status(500)
         .json({ data: null, message: { error: "Ups, hubo un error" } });

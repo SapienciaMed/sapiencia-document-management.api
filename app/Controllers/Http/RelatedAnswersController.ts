@@ -121,7 +121,7 @@ export default class RelatedAnswersController {
 
   public async findByIdAndType({ request, response }: HttpContextContract) {
     const { id, type } = request.params();
-    console.log(id, type, "id, type");
+
     try {
       const RadicadoByIdAndType = RadicadoDetail.query();
 

@@ -33,8 +33,6 @@ export default class RecipientInformationsController {
     const last_name = request.input('apellido');
     const id = request.input('id');
 
-    console.log(name, last_name, id)
-
     try {
       const query = RecipientInformation.query();
 
