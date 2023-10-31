@@ -370,16 +370,16 @@ export default class RadicadoDetailsController {
         });
       }
 
-      // const bucketName = 'sapiencia-document-management';
-      // const storage = new Storage();
-      // const bucket = storage.bucket(bucketName);
+      const bucketName = 'sapiencia-document-management';
+      const storage = new Storage({ keyFilename: process.env.GCLOUD_KEYFILE });
+      const bucket = storage.bucket(bucketName);
 
       for (const file of files) {
         const radicado = file.clientName.replace('.pdf', '');
         const uniqueFileName = `${uuidv4()}.pdf`;
         if (file.tmpPath) {
-          // await bucket.upload(file.tmpPath, { destination: `${uniqueFileName}`, });
-          await Database.table('attachments_radicados').insert({ ARA_RADICADO: radicado, ARA_PATH: `${uniqueFileName}`, });
+          await bucket.upload(file.tmpPath, { destination: `${uniqueFileName}` });
+          await Database.table('ARA_ADJUNTOS_RADICADOS').insert({ ARA_RADICADO: radicado, ARA_PATH: `${uniqueFileName}`, });
         } else {
           return response.status(400).json({
             message: 'Algunos números de radicado no se encuentran, por favor verifique',
