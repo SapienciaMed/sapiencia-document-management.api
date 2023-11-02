@@ -1,11 +1,13 @@
 import type { HttpContextContract } from "@ioc:Adonis/Core/HttpContext";
 import moment from "moment";
+import { Storage } from "@google-cloud/storage";
 import Database from "@ioc:Adonis/Lucid/Database";
 import RadicadoDetail from "App/Models/RadicadoDetail";
 import { ApiResponse } from "App/Utils/ApiResponses";
 import { EResponseCodes } from "App/Constants/ResponseCodesEnum";
-
+import { v4 as uuidv4 } from "uuid";
 export default class RadicadoDetailsController {
+  constructor() {}
   public async index({ response }: HttpContextContract) {
     const radicadoDetailsList = await RadicadoDetail.query().preload(
       "rn_radicado_details_to_related_answer"
@@ -384,6 +386,71 @@ export default class RadicadoDetailsController {
       return response
         .status(400)
         .send(new ApiResponse([], EResponseCodes.FAIL, error.message));
+    }
+  }
+
+  async massiveIndexing({ request, response }: HttpContextContract) {
+    const files = request.files("files");
+
+    try {
+      console.log(request.all());
+      const invalidRadicados: string[] = [];
+
+      if (files.length <= 0) {
+        return response.status(400).json({
+          message: "Error: Se debe enviar al menos 1 archivo",
+        });
+      }
+
+      for (const file of files) {
+        const radicado: string = file.clientName.replace(".pdf", "");
+        const exists = await Database.from("radicado_details")
+          .where("DRA_RADICADO", radicado)
+          .first();
+
+        if (!exists) {
+          invalidRadicados.push(radicado);
+        }
+      }
+
+      if (invalidRadicados.length > 0) {
+        return response.status(400).json({
+          message:
+            "Algunos números de radicado no se encuentran, por favor verifique",
+          invalidRadicados,
+        });
+      }
+
+      const bucketName = "sapiencia-document-management";
+      const storage = new Storage();
+      const bucket = storage.bucket(bucketName);
+
+      for (const file of files) {
+        const radicado = file.clientName.replace(".pdf", "");
+        const uniqueFileName = `${uuidv4()}.pdf`;
+        if (file.tmpPath) {
+          await bucket.upload(file.tmpPath, {
+            destination: `${uniqueFileName}`,
+          });
+          await Database.table("ARA_ADJUNTOS_RADICADOS").insert({
+            ARA_RADICADO: radicado,
+            ARA_PATH: `${uniqueFileName}`,
+          });
+        } else {
+          return response.status(400).json({
+            message:
+              "Algunos números de radicado no se encuentran, por favor verifique",
+            invalidRadicados,
+          });
+        }
+      }
+
+      return response
+        .status(200)
+        .json({ message: "Archivos subidos con éxito" });
+    } catch (error) {
+      console.log(error);
+      return response.status(500).json({ message: "Error al subir archivos" });
     }
   }
 }
