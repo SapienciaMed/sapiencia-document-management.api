@@ -47,12 +47,23 @@ Route.group(() => {
     "RadicadoDetailsController.searchByRecipient"
   );
 
-  Route.get("/radicado-details/getSummaryRecipients", "RadicadoDetailsController.getSummaryRecipients");
-  Route.get("/radicado-details/getSummaryFileds", "RadicadoDetailsController.getSummaryFileds");
+  Route.get(
+    "/radicado-details/getSummaryRecipients",
+    "RadicadoDetailsController.getSummaryRecipients"
+  );
+  Route.get(
+    "/radicado-details/getSummaryFileds",
+    "RadicadoDetailsController.getSummaryFileds"
+  );
 
   Route.get(
     "/radicado-details/find-by-id/:id",
     "RadicadoDetailsController.findById"
+  );
+
+  Route.get(
+    "/radicado-details/movements-by-id/:id",
+    "RadicadoDetailsController.movementsFindById"
   );
 
   Route.get(
