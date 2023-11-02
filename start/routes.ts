@@ -47,13 +47,27 @@ Route.group(() => {
     "RadicadoDetailsController.searchByRecipient"
   );
 
-  Route.get("/radicado-details/getSummaryRecipients", "RadicadoDetailsController.getSummaryRecipients");
-  Route.get("/radicado-details/getSummaryFileds", "RadicadoDetailsController.getSummaryFileds");
-  Route.post("/radicado-details/massiveIndexing", "RadicadoDetailsController.massiveIndexing");
+  Route.get(
+    "/radicado-details/getSummaryRecipients",
+    "RadicadoDetailsController.getSummaryRecipients"
+  );
+  Route.get(
+    "/radicado-details/getSummaryFileds",
+    "RadicadoDetailsController.getSummaryFileds"
+  );
+  Route.post(
+    "/radicado-details/massiveIndexing",
+    "RadicadoDetailsController.massiveIndexing"
+  );
 
   Route.get(
     "/radicado-details/find-by-id/:id",
     "RadicadoDetailsController.findById"
+  );
+
+  Route.get(
+    "/radicado-details/movements-by-id/:id",
+    "RadicadoDetailsController.movementsFindById"
   );
 
   Route.get(
@@ -133,6 +147,11 @@ Route.group(() => {
   //post for table search
   Route.post("/entities/find", "EntitiesController.find");
 }).prefix("/api/v1/document-management");
+
+//Radicado Comments
+Route.group(() => {
+  Route.resource("/comment", "CommentsController").apiOnly();
+}).prefix("/api/v1/document-management/radicado");
 
 //Generic Lists
 Route.group(() => {

@@ -1,15 +1,13 @@
 import type { HttpContextContract } from "@ioc:Adonis/Core/HttpContext";
 import moment from "moment";
-import { Storage } from '@google-cloud/storage';
+import { Storage } from "@google-cloud/storage";
 import Database from "@ioc:Adonis/Lucid/Database";
 import RadicadoDetail from "App/Models/RadicadoDetail";
 import { ApiResponse } from "App/Utils/ApiResponses";
 import { EResponseCodes } from "App/Constants/ResponseCodesEnum";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 export default class RadicadoDetailsController {
-
-  constructor() {
-  }
+  constructor() {}
   public async index({ response }: HttpContextContract) {
     const radicadoDetailsList = await RadicadoDetail.query().preload(
       "rn_radicado_details_to_related_answer"
@@ -152,10 +150,13 @@ export default class RadicadoDetailsController {
     }
   }
 
-  public async getSummaryRecipients({ request, response }: HttpContextContract) {
+  public async getSummaryRecipients({
+    request,
+    response,
+  }: HttpContextContract) {
     try {
       const id = request.input("id-destinatario");
-      const query = Database.from('radicado_details as rd')
+      const query = Database.from("radicado_details as rd")
         .select(
           Database.raw(`
               CASE
@@ -173,7 +174,8 @@ export default class RadicadoDetailsController {
                       END
               END as estado_documento
           `)
-        ).leftJoin(
+        )
+        .leftJoin(
           "ENT_ENTIDAD as ent1",
           "rd.DRA_ID_DESTINATARIO",
           "ent1.ENT_NUMERO_IDENTIDAD"
@@ -184,7 +186,7 @@ export default class RadicadoDetailsController {
           "rcd.RCD_RADICADO"
         );
 
-      query.select(Database.raw('COUNT(*) as contador_estado'));
+      query.select(Database.raw("COUNT(*) as contador_estado"));
 
       query.groupByRaw(`
           CASE
@@ -204,11 +206,12 @@ export default class RadicadoDetailsController {
       `);
 
       query
-      .where("rd.DRA_ID_DESTINATARIO", id)
-      .orWhere("rcd.RCD_ID_DESTINATARIO", id);
+        .where("rd.DRA_ID_DESTINATARIO", id)
+        .orWhere("rcd.RCD_ID_DESTINATARIO", id);
 
-      const totalQuery = Database.from('radicado_details as rd')
-        .select(Database.raw('COUNT(*) as contador_total'));
+      const totalQuery = Database.from("radicado_details as rd").select(
+        Database.raw("COUNT(*) as contador_total")
+      );
 
       const [result, totalResult] = await Promise.all([query, totalQuery]);
 
@@ -232,15 +235,16 @@ export default class RadicadoDetailsController {
       });
     } catch (err) {
       console.log(err);
-      return response.status(500).json({ data: null, message: { error: "Hubo un error" } });
+      return response
+        .status(500)
+        .json({ data: null, message: { error: "Hubo un error" } });
     }
   }
 
   public async getSummaryFileds({ response }: HttpContextContract) {
     try {
-      const query = Database.from('radicado_details as rd')
-        .select(
-          Database.raw(`
+      const query = Database.from("radicado_details as rd").select(
+        Database.raw(`
               CASE
                   WHEN rd.DRA_FECHA_EVACUACION_SALIDA IS NULL THEN
                       CASE
@@ -256,9 +260,9 @@ export default class RadicadoDetailsController {
                       END
               END as estado_documento
           `)
-        );
+      );
 
-      query.select(Database.raw('COUNT(*) as contador_estado'));
+      query.select(Database.raw("COUNT(*) as contador_estado"));
 
       query.groupByRaw(`
           CASE
@@ -277,8 +281,9 @@ export default class RadicadoDetailsController {
           END
       `);
 
-      const totalQuery = Database.from('radicado_details as rd')
-        .select(Database.raw('COUNT(*) as contador_total'));
+      const totalQuery = Database.from("radicado_details as rd").select(
+        Database.raw("COUNT(*) as contador_total")
+      );
 
       const [result, totalResult] = await Promise.all([query, totalQuery]);
 
@@ -302,7 +307,9 @@ export default class RadicadoDetailsController {
       });
     } catch (err) {
       console.log(err);
-      return response.status(500).json({ data: null, message: { error: "Hubo un error" } });
+      return response
+        .status(500)
+        .json({ data: null, message: { error: "Hubo un error" } });
     }
   }
 
@@ -346,18 +353,53 @@ export default class RadicadoDetailsController {
     }
   }
 
+  public async movementsFindById({ request, response }: HttpContextContract) {
+    const { id } = request.params();
+    try {
+      const RadicadoById = RadicadoDetail.query();
+
+      if (id) {
+        RadicadoById.orWhere("DRA_RADICADO", "like", `%${id}%`);
+      }
+
+      const data = await RadicadoById.preload("rn_radicado_remitente_to_entity")
+        .preload("rn_radicado_destinatario_to_entity")
+        .select("*")
+        .limit(100);
+
+      if (data.length == 0) {
+        return response
+          .status(404)
+          .send(
+            new ApiResponse(
+              [],
+              EResponseCodes.NOT_FOUND,
+              "No hay registros para mostrar"
+            )
+          );
+      }
+
+      return response
+        .status(200)
+        .send(new ApiResponse(data, EResponseCodes.OK, "Datos Encontrados"));
+    } catch (error) {
+      return response
+        .status(400)
+        .send(new ApiResponse([], EResponseCodes.FAIL, error.message));
+    }
+  }
 
   async massiveIndexing({ request, response }: HttpContextContract) {
-    const files = request.files('files');
+    const files = request.files("files");
 
     try {
-      console.log(request.all())
+      console.log(request.all());
       const invalidRadicados: string[] = [];
       const radicados: string[] = [];
 
       if (files.length <= 0) {
         return response.status(400).json({
-          message: 'Error: Se debe enviar al menos 1 archivo'
+          message: "Error: Se debe enviar al menos 1 archivo",
         });
       }
 
@@ -372,35 +414,40 @@ export default class RadicadoDetailsController {
 
       if (invalidRadicados.length > 0) {
         return response.status(400).json({
-          message: 'Algunos números de radicado no se encuentran, por favor verifique',
+          message:
+            "Algunos números de radicado no se encuentran, por favor verifique",
           invalidRadicados,
         });
       }
 
-      const bucketName = 'sapiencia-document-management';
+      const bucketName = "sapiencia-document-management";
       const storage = new Storage();
       const bucket = storage.bucket(bucketName);
 
       for (const file of files) {
-        const radicado = file.clientName.replace('.pdf', '');
+        const radicado = file.clientName.replace(".pdf", "");
         const uniqueFileName = `${uuidv4()}.pdf`;
         if (file.tmpPath) {
-          await bucket.upload(file.tmpPath, { destination: `${uniqueFileName}` });
-          await Database.table('ARA_ADJUNTOS_RADICADOS').insert({ ARA_RADICADO: radicado, ARA_PATH: `${uniqueFileName}`, });
+          await bucket.upload(file.tmpPath, {
+            destination: `${uniqueFileName}`,
+          });
+          await Database.table("ARA_ADJUNTOS_RADICADOS").insert({
+            ARA_RADICADO: radicado,
+            ARA_PATH: `${uniqueFileName}`,
+          });
         } else {
           return response.status(400).json({
-            message: 'Algunos números de radicado no se encuentran, por favor verifique',
+            message:
+              "Algunos números de radicado no se encuentran, por favor verifique",
             invalidRadicados,
           });
         }
-
       }
 
       return response.status(200).json({ message: 'Archivos subidos con éxito', radicados });
     } catch (error) {
-      console.log(error)
-      return response.status(500).json({ message: 'Error al subir archivos' });
+      console.log(error);
+      return response.status(500).json({ message: "Error al subir archivos" });
     }
   }
-
 }
