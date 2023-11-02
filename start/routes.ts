@@ -148,6 +148,11 @@ Route.group(() => {
   Route.post("/entities/find", "EntitiesController.find");
 }).prefix("/api/v1/document-management");
 
+//Radicado Comments
+Route.group(() => {
+  Route.resource("/comment", "CommentsController").apiOnly();
+}).prefix("/api/v1/document-management/radicado");
+
 //Generic Lists
 Route.group(() => {
   Route.get("/geographic-list", "GenericGeographiclListsController.listAll"); //Paises, departamento y municipios
