@@ -12,7 +12,10 @@ export default class CommentsController {
     try {
       const comment = new Comment();
       //const data = await request.validate(GeneralConfigurationValidator);
-      comment.fill(request.all());
+      comment.fill({
+        inf_radicado: request.body().dra_radicado,
+        inf_comentario: request.body().comentario,
+      });
       await comment.save();
 
       return response
