@@ -30,6 +30,18 @@ export default class extends BaseSchema {
       table.integer("DRA_NUM_ANEXOS").unsigned().notNullable();
       table.integer("DRA_NUM_FOLIOS").unsigned().nullable();
       table.integer("DRA_NUM_CAJAS").unsigned().notNullable();
+      table
+        .string("DRA_ESTADO_RADICADO", 15)
+        .notNullable()
+        .comment("Evacuado o Pendiente");
+      table
+        .string("DRA_MOVIMIENTO", 15)
+        .notNullable()
+        .comment("Asignado o Devuelto");
+      table
+        .string("DRA_USUARIO", 30)
+        .notNullable()
+        .comment("codigo usuario que modifica el radicado");
       /**
        * Uses timestamptz for PostgreSQL and DATETIME2 for MSSQL
        */
