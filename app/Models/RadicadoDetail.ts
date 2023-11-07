@@ -79,6 +79,15 @@ export default class RadicadoDetail extends BaseModel {
   @column({ columnName: "DRA_NUM_CAJAS" })
   public dra_num_cajas: number;
 
+  @column({ columnName: "DRA_ESTADO_RADICADO" })
+  public dra_estado_radicado: string;
+
+  @column({ columnName: "DRA_MOVIMIENTO" })
+  public dra_movimiento: string;
+
+  @column({ columnName: "DRA_USUARIO" })
+  public dra_usuario: string;
+
   @hasMany(() => RelatedAnswer, {
     foreignKey: "rrr_id_radicado",
     localKey: "dra_radicado",
