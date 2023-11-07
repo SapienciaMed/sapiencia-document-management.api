@@ -395,6 +395,7 @@ export default class RadicadoDetailsController {
     try {
       console.log(request.all());
       const invalidRadicados: string[] = [];
+      const radicados: string[] = [];
 
       if (files.length <= 0) {
         return response.status(400).json({
@@ -403,11 +404,9 @@ export default class RadicadoDetailsController {
       }
 
       for (const file of files) {
-        const radicado: string = file.clientName.replace(".pdf", "");
-        const exists = await Database.from("radicado_details")
-          .where("DRA_RADICADO", radicado)
-          .first();
-
+        const radicado: string = file.clientName.replace('.pdf', '');
+        const exists = await Database.from('radicado_details').where('DRA_RADICADO', radicado).first();
+        radicados.push(radicado);
         if (!exists) {
           invalidRadicados.push(radicado);
         }
@@ -445,9 +444,7 @@ export default class RadicadoDetailsController {
         }
       }
 
-      return response
-        .status(200)
-        .json({ message: "Archivos subidos con éxito" });
+      return response.status(200).json({ message: 'Archivos subidos con éxito', radicados });
     } catch (error) {
       console.log(error);
       return response.status(500).json({ message: "Error al subir archivos" });
