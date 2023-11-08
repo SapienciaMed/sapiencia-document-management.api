@@ -60,9 +60,24 @@ Route.group(() => {
     "RadicadoDetailsController.massiveIndexing"
   );
 
+  Route.post(
+    "/radicado-details/create",
+    "RadicadoDetailsController.create"
+  );
+
+  Route.put(
+    "/radicado-details/complete/:numRadicado",
+    "RadicadoDetailsController.complete"
+  );
+
   Route.get(
     "/radicado-details/find-by-id/:id",
     "RadicadoDetailsController.findById"
+  );
+
+  Route.get(
+    "/radicado-details/find-by-create-by/:userId",
+    "RadicadoDetailsController.findByCreateBy"
   );
 
   Route.get(

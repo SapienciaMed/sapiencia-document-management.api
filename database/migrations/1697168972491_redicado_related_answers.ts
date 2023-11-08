@@ -18,22 +18,6 @@ export default class extends BaseSchema {
        */
       table.timestamp("created_at").defaultTo(this.now());
       table.timestamp("updated_at").defaultTo(this.now());
-
-      table
-        .foreign("RRR_ID_RADICADO", "fk_rrr_idRadicado_to_dra_radicado")
-        .references("DRA_RADICADO")
-        .inTable("radicado_details")
-        .onDelete("CASCADE")
-        .onUpdate("CASCADE");
-      table
-        .foreign(
-          "RRR_ID_RESPUESTAS_RELACIONADAS",
-          "fk_rrr_relatedAnswer_to_dra_radicado"
-        )
-        .references("DRA_RADICADO")
-        .inTable("radicado_details")
-        .onDelete("CASCADE")
-        .onUpdate("CASCADE");
     });
   }
 
