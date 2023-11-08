@@ -71,6 +71,11 @@ Route.group(() => {
   );
 
   Route.get(
+    "/radicado-details/massive-by-id/:id",
+    "RadicadoDetailsController.massiveFindById"
+  );
+
+  Route.get(
     "/radicado-details/find-all/",
     "RadicadoDetailsController.findById"
   );
