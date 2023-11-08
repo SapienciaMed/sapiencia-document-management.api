@@ -164,3 +164,8 @@ Route.group(() => {
   Route.get("/type-entity-list", "GenericListController.getTypesEntity");
   Route.get("/type-radicado-list", "GenericListController.getTypesRadicado");
 }).prefix("/api/v1/document-management/generic-list");
+
+//Entities
+Route.group(() => {
+  Route.resource("/processes-massive", "MassiveProcessesController").apiOnly();
+}).prefix("/api/v1/document-management/gestion");
