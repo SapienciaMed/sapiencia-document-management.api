@@ -426,6 +426,44 @@ export default class RadicadoDetailsController {
     }
   }
 
+  public async massiveFindByDate({ request, response }: HttpContextContract) {
+    const { id } = request.params();
+
+    try {
+      const RadicadoById = RadicadoDetail.query();
+
+      if (id) {
+        RadicadoById.where("DRA_FECHA_RADICADO", "=", `${id}`);
+      }
+
+      const data = await RadicadoById.preload("rn_radicado_remitente_to_entity")
+        .preload("rn_radicado_destinatario_to_entity")
+        .select("*")
+        .where("dra_estado_radicado", "Pendiente")
+        .limit(100);
+
+      if (data.length == 0) {
+        return response
+          .status(404)
+          .send(
+            new ApiResponse(
+              [],
+              EResponseCodes.NOT_FOUND,
+              "No hay registros para mostrar"
+            )
+          );
+      }
+
+      return response
+        .status(200)
+        .send(new ApiResponse(data, EResponseCodes.OK, "Datos Encontrados"));
+    } catch (error) {
+      return response
+        .status(400)
+        .send(new ApiResponse([], EResponseCodes.FAIL, error.message));
+    }
+  }
+
   async massiveIndexing({ request, response }: HttpContextContract) {
     const files = request.files("files");
 
