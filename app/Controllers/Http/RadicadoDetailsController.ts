@@ -16,14 +16,14 @@ export default class RadicadoDetailsController {
     return response.status(200).send(radicadoDetailsList);
   }
 
-  public async store({ response }: HttpContextContract) {
-    // const payload = await request.validate({
-    //   schema: RadicadoDetailValidator
-    // })
-    return response.status(200).json({
-      message: "Radicado store",
-    });
-  }
+  // public async store({ response }: HttpContextContract) {
+  //   // const payload = await request.validate({
+  //   //   schema: RadicadoDetailValidator
+  //   // })
+  //   return response.status(200).json({
+  //     message: "Radicado store",
+  //   });
+  // }
 
   public async show({ request, response }: HttpContextContract) {
     const { id } = request.params();
@@ -313,10 +313,6 @@ export default class RadicadoDetailsController {
     }
   }
 
-  public async update({}: HttpContextContract) {}
-
-  public async destroy({}: HttpContextContract) {}
-
   public async findById({ request, response }: HttpContextContract) {
     const { id } = request.params();
     try {
@@ -527,6 +523,182 @@ export default class RadicadoDetailsController {
     } catch (error) {
       console.log(error);
       return response.status(500).json({ message: "Error al subir archivos" });
+    }
+  }
+
+  async create({ request, response }: HttpContextContract) {
+    try {
+      const data = request.only([
+        'DRA_FECHA_RADICADO',
+        'DRA_TIPO_RADICADO',
+        'DRA_RADICADO_ORIGEN',
+        'DRA_RADICADO_POR',
+        'DRA_NOMBRE_RADICADOR',
+        'DRA_ID_REMITENTE',
+        'DRA_CODIGO_ASUNTO',
+        'DRA_TIPO_ASUNTO',
+        'DRA_PRIORIDAD_ASUNTO',
+        'DRA_ID_DESTINATARIO',
+        'DRA_OBSERVACION',
+        'DRA_NUM_ANEXOS',
+        'DRA_NUM_FOLIOS',
+        'DRA_NUM_CAJAS',
+        'DRA_TIPO_DOCUMENTO_RADICADO',
+        'DRA_PRIORIDAD',
+        'DRA_TIPO_INFO',
+        'DRA_CREADO_POR',
+        'DRA_ESTADO',
+      ]);
+
+      console.log('data', data)
+
+      const currentCGERecibido = await Database.from('CGE_CONFIGURACION_GENERAL')
+        .where('CGE_CODIGO', 1)
+        .select('CGE_RECIBIDO')
+        .first();
+
+      console.log('currentCGERecibido', currentCGERecibido)
+      if (currentCGERecibido) {
+        await Database.from('CGE_CONFIGURACION_GENERAL')
+          .where('CGE_CODIGO', 1)
+          .increment('CGE_RECIBIDO', 1);
+      }
+
+      await Database.table('radicado_details').insert({
+        'DRA_RADICADO': currentCGERecibido.CGE_RECIBIDO + 1,
+        ...data
+      });
+
+      const copiesData = request.input('copies', []).map((copy) => ({
+        ...copy,
+        RCD_RADICADO: currentCGERecibido.CGE_RECIBIDO + 1,
+      }));
+
+      if (copiesData.length > 0) {
+        await Database.table('RCD_RADICADO_COPIAS_DESTINATARIO').insert(copiesData);
+      }
+
+      return response.status(201).json({ message: 'Radicado guardado exitosamente', data: {
+        radicado: data,
+        copias: copiesData,
+        num_radicado: currentCGERecibido.CGE_RECIBIDO + 1
+      } });
+    } catch (error) {
+      console.log(error)
+      return response.status(500).json({ error: 'Ocurrió un error al guardar el radicado' });
+    }
+  }
+
+  async findByCreateBy({ request, response }) {
+    try {
+      const { userId } = request.params();
+      let copies: any = [];
+
+      const radicado = await Database.from('radicado_details')
+        .where('DRA_CREADO_POR', userId)
+        .where('DRA_ESTADO', 'INCOMPLETO')
+        .first();
+
+      if (!radicado) {
+        return response.json({
+          radicado: {},
+          copias: [],
+        });
+      }
+
+      copies = await Database.from('RCD_RADICADO_COPIAS_DESTINATARIO')
+        .where('RCD_RADICADO', radicado.DRA_RADICADO);
+
+      return response.json({
+        radicado: radicado,
+        copias: copies,
+      });
+
+    } catch (error) {
+      console.log(error);
+      return response.status(500).json({ error: 'Ocurrió un error al consultar el radicado' });
+    }
+  }
+
+  async complete({ request, response }: HttpContextContract) {
+    try {
+      const { numRadicado } = request.params();
+
+      const data = request.only([
+        'DRA_FECHA_RADICADO',
+        'DRA_TIPO_RADICADO',
+        'DRA_RADICADO_ORIGEN',
+        'DRA_RADICADO_POR',
+        'DRA_NOMBRE_RADICADOR',
+        'DRA_ID_REMITENTE',
+        'DRA_CODIGO_ASUNTO',
+        'DRA_TIPO_ASUNTO',
+        'DRA_PRIORIDAD_ASUNTO',
+        'DRA_ID_DESTINATARIO',
+        'DRA_OBSERVACION',
+        'DRA_OPCIONES_RESPUESTA',
+        'DRA_REFERENCIA',
+        'DRA_NUM_ANEXOS',
+        'DRA_NUM_FOLIOS',
+        'DRA_NUM_CAJAS',
+        'DRA_TIPO_DOCUMENTO_RADICADO',
+        'DRA_PRIORIDAD',
+        'DRA_TIPO_INFO',
+        'DRA_ESTADO',
+      ]);
+
+      await Database
+        .from('radicado_details')
+        .where('DRA_RADICADO', numRadicado)
+        .update(data);
+
+      const copiesData = request.input('copies', []).map((copy) => ({
+        ...copy,
+        RCD_RADICADO: numRadicado,
+      }));
+
+      if (copiesData.length > 0) {
+        await Database
+          .from('RCD_RADICADO_COPIAS_DESTINATARIO')
+          .where('RCD_RADICADO', numRadicado)
+          .delete();
+        await Database
+          .table('RCD_RADICADO_COPIAS_DESTINATARIO')
+          .insert(copiesData);
+      }
+
+      const rrrData = request.input('rrData', []) as { RRR_ID_RADICADO:string, RRR_ID_RESPUESTAS_RELACIONADAS: string }[];
+
+      if (rrrData.length > 0) {
+        await Database.table('RRR_RESPUESTAS_RELACIONADAS').insert(rrrData );
+      }
+
+      const files = request.files('files');
+      const bucketName = 'sapiencia-document-management';
+      const storage = new Storage();
+      const bucket = storage.bucket(bucketName);
+
+      for (const file of files) {
+        const uniqueFileName = `${uuidv4()}_${file.clientName}`;
+        if (file.tmpPath) {
+          await bucket.upload(file.tmpPath, {
+            destination: `${uniqueFileName}`,
+          });
+          await Database.table('ARA_ADJUNTOS_RADICADOS').insert({
+            ARA_RADICADO: numRadicado,
+            ARA_PATH: uniqueFileName,
+          });
+        } else {
+          return response.status(400).json({
+            message: 'Error al subir archivos',
+          });
+        }
+      }
+
+      return response.json({ message: 'Radicado actualizado exitosamente' });
+    } catch (error) {
+      console.log(error);
+      return response.status(500).json({ error: 'Ocurrió un error al actualizar el radicado' });
     }
   }
 }
