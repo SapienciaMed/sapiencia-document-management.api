@@ -126,4 +126,22 @@ export default class EntitiesController {
         .json({ data: null, message: { error: "Ups, hubo un error" } });
     }
   }
+
+  public async findEntidadAutocomplete({
+    request,
+    response,
+  }: HttpContextContract) {
+    const entidad = request.input("entidad");
+
+    const data = await Entity.query()
+      .where("ent_nombres", "like", `%${entidad}%`)
+      .orWhere("ent_apellidos", "like", `%${entidad}%`)
+      .orWhere("ent_razon_social", "like", `%${entidad}%`);
+
+    if (data.length > 0) {
+      return response.status(200).send(data);
+    } else {
+      return response.json([]);
+    }
+  }
 }

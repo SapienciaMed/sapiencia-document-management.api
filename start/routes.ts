@@ -154,6 +154,10 @@ Route.group(() => {
 Route.group(() => {
   Route.get("/entities/search", "EntitiesController.search");
   Route.resource("/entities", "EntitiesController").apiOnly();
+  Route.get(
+    "/entities/get-by-name/param",
+    "EntitiesController.findEntidadAutocomplete"
+  );
   //post for table search
   Route.post("/entities/find", "EntitiesController.find");
 }).prefix("/api/v1/document-management");
@@ -170,7 +174,7 @@ Route.group(() => {
   Route.get("/type-radicado-list", "GenericListController.getTypesRadicado");
 }).prefix("/api/v1/document-management/generic-list");
 
-//Entities
+//Processes Masive
 Route.group(() => {
   Route.resource("/processes-massive", "MassiveProcessesController").apiOnly();
 }).prefix("/api/v1/document-management/gestion");
