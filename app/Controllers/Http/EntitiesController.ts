@@ -109,7 +109,7 @@ export default class EntitiesController {
           query.andWhere('ENT_RAZON_SOCIAL', "LIKE", `%${ent_nombres}%`);
         } else {
           // query.andWhere('ENT_NOMBRES', "LIKE", `%${ent_nombres}%`);
-          query.andWhereRaw(`CONCAT("ENT_NOMBRES", " ", "ENT_APELLIDOS") LIKE ?`, [`%${ent_nombres}%`]);
+          query.andWhereRaw(`CONCAT(ENT_NOMBRES, " ", ENT_APELLIDOS) LIKE ?`, [`%${ent_nombres}%`]);
         }
       }
 
