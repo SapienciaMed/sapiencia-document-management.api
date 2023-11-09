@@ -105,12 +105,12 @@ export default class EntitiesController {
       }
 
       if (ent_nombres) {
-        let field = "ENT_NOMBRES";
         if (ent_tipo_documento == "NIT") {
-          field = "ENT_RAZON_SOCIAL";
+          query.andWhere('ENT_RAZON_SOCIAL', "LIKE", `%${ent_nombres}%`);
+        } else {
+          // query.andWhere('ENT_NOMBRES', "LIKE", `%${ent_nombres}%`);
+          query.andWhereRaw(`CONCAT("ENT_NOMBRES", " ", "ENT_APELLIDOS") LIKE ?`, [`%${ent_nombres}%`]);
         }
-
-        query.andWhere(field, "LIKE", `%${ent_nombres}%`);
       }
 
       const data = await query.select("*");
