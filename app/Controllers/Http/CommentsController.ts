@@ -91,7 +91,34 @@ export default class CommentsController {
     }
   }
 
-  public async show({}: HttpContextContract) {}
+  public async show({ request, response }: HttpContextContract) {
+    const { id } = request.params();
+
+    try {
+      const comments = await Comment.query().where("inf_radicado", id);
+
+      if (!comments) {
+        return response
+          .status(400)
+          .send(
+            new ApiResponse([], EResponseCodes.NOT_FOUND, "No hay comentarios")
+          );
+      }
+      return response
+        .status(200)
+        .send(
+          new ApiResponse(
+            comments,
+            EResponseCodes.OK,
+            "Comentarios cargados con éxito"
+          )
+        );
+    } catch (err) {
+      return response
+        .status(500)
+        .send(new ApiResponse([], EResponseCodes.FAIL, "No hay comentarios"));
+    }
+  }
 
   public async edit({}: HttpContextContract) {}
 
