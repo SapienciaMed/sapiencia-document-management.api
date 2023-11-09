@@ -36,12 +36,16 @@ export default class RecipientInformationsController {
     try {
       const query = RecipientInformation.query();
 
-      if (name) {
-        query.orWhere('USR_NOMBRE', 'LIKE', `%${name}%`);
-      }
+      if (name && last_name) {
+        query.orWhereRaw(`CONCAT("USR_NOMBRE", " ", "USR_APELLIDOS") LIKE ?`, [`%${name} ${last_name}%`]);
+      } else {
+        if (name) {
+          query.orWhere('USR_NOMBRE', 'LIKE', `%${name}%`);
+        }
 
-      if (last_name) {
-        query.orWhere('USR_APELLIDOS', 'LIKE', `%${last_name}%`);
+        if (last_name) {
+          query.orWhere('USR_APELLIDOS', 'LIKE', `%${last_name}%`);
+        }
       }
 
       if (id) {
@@ -52,10 +56,10 @@ export default class RecipientInformationsController {
 
       return response.status(200).json({
         data: subjects,
-        message: { success: "Peticion terminada exitosamente" },
+        message: { success: "Petición terminada exitosamente" },
       });
     } catch (err) {
-      console.log(err)
+      console.log(err);
       return response
         .status(500)
         .json({ data: null, message: { error: "Ups, hubo un error" } });
