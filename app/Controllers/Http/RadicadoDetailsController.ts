@@ -701,4 +701,41 @@ export default class RadicadoDetailsController {
       return response.status(500).json({ error: 'Ocurrió un error al actualizar el radicado' });
     }
   }
+
+  public async findAllPending({ request, response }: HttpContextContract) {
+    const { id } = request.params();
+    try {
+      const RadicadoById = RadicadoDetail.query();
+
+      if (id) {
+        RadicadoById.orWhere("DRA_RADICADO", "like", `%${id}%`);
+      }
+
+      const data = await RadicadoById.preload("rn_radicado_remitente_to_entity")
+        .preload("rn_radicado_destinatario_to_entity")
+        .where("dra_estado_radicado", "Pendiente")
+        .select("*")
+        .limit(100);
+
+      if (data.length == 0) {
+        return response
+          .status(404)
+          .send(
+            new ApiResponse(
+              [],
+              EResponseCodes.NOT_FOUND,
+              "No hay registros para mostrar"
+            )
+          );
+      }
+
+      return response
+        .status(200)
+        .send(new ApiResponse(data, EResponseCodes.OK, "Datos Encontrados"));
+    } catch (error) {
+      return response
+        .status(400)
+        .send(new ApiResponse([], EResponseCodes.FAIL, error.message));
+    }
+  }
 }

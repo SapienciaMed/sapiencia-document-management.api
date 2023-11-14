@@ -100,6 +100,11 @@ Route.group(() => {
     "RadicadoDetailsController.findById"
   );
 
+  Route.get(
+    "/radicado-details/find-all-pending",
+    "RadicadoDetailsController.findAllPending"
+  );
+
   Route.resource("/radicado-details", "RadicadoDetailsController").apiOnly();
 }).prefix("/api/v1/document-management");
 
