@@ -24,7 +24,7 @@ export default class MassiveProcessesController {
 
       return response
         .status(200)
-        .send(new ApiResponse([], EResponseCodes.OK, "Comentario Guardado"));
+        .send(new ApiResponse([], EResponseCodes.OK, "Evacuación Exitosa"));
     } catch (err) {
       console.log(err.message);
       return response
