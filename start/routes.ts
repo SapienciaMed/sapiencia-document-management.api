@@ -37,7 +37,7 @@ Route.group(() => {
     "/get-by-groupers",
     "GenericListController.getGenericListByGroupers"
   );
-}).prefix("/api/v1/generic-list");
+}).prefix("/api/v1/generic-list").middleware("auth");
 // .middleware("auth");
 
 //Radicado Details
@@ -106,7 +106,7 @@ Route.group(() => {
   );
 
   Route.resource("/radicado-details", "RadicadoDetailsController").apiOnly();
-}).prefix("/api/v1/document-management");
+}).prefix("/api/v1/document-management").middleware("auth");
 
 //Related Answers
 Route.group(() => {
@@ -119,7 +119,7 @@ Route.group(() => {
     "/answer-document/:id/type/:type",
     "RelatedAnswersController.findByIdAndType"
   );
-}).prefix("/api/v1/document-management");
+}).prefix("/api/v1/document-management").middleware("auth");
 
 Route.group(() => {
   Route.get(
@@ -135,7 +135,7 @@ Route.group(() => {
     "/update/:id",
     "GeneralConfigurationController.updateGeneralConfiguration"
   );
-}).prefix("/api/v1/general-configuration");
+}).prefix("/api/v1/general-configuration").middleware("auth");
 
 Route.group(() => {
   Route.resource(
@@ -144,7 +144,7 @@ Route.group(() => {
   ).apiOnly();
   //post for table search
   Route.post("/sender-information/find", "SenderInformationsController.find");
-}).prefix("/api/v1/document-management");
+}).prefix("/api/v1/document-management").middleware("auth");
 
 Route.group(() => {
   Route.get(
@@ -156,7 +156,7 @@ Route.group(() => {
     "/basic-document",
     "BasicDocumentInformationsController"
   ).apiOnly();
-}).prefix("/api/v1/document-management");
+}).prefix("/api/v1/document-management").middleware("auth");
 
 Route.group(() => {
   Route.get(
@@ -168,7 +168,7 @@ Route.group(() => {
     "/recipient-information",
     "RecipientInformationsController"
   ).apiOnly();
-}).prefix("/api/v1/document-management");
+}).prefix("/api/v1/document-management").middleware("auth");
 
 //Entities
 Route.group(() => {
@@ -180,21 +180,21 @@ Route.group(() => {
   );
   //post for table search
   Route.post("/entities/find", "EntitiesController.find");
-}).prefix("/api/v1/document-management");
+}).prefix("/api/v1/document-management").middleware("auth");
 
 //Radicado Comments
 Route.group(() => {
   Route.resource("/comment", "CommentsController").apiOnly();
-}).prefix("/api/v1/document-management/radicado");
+}).prefix("/api/v1/document-management/radicado").middleware("auth");
 
 //Generic Lists
 Route.group(() => {
   Route.get("/geographic-list", "GenericGeographiclListsController.listAll"); //Paises, departamento y municipios
   Route.get("/type-entity-list", "GenericListController.getTypesEntity");
   Route.get("/type-radicado-list", "GenericListController.getTypesRadicado");
-}).prefix("/api/v1/document-management/generic-list");
+}).prefix("/api/v1/document-management/generic-list").middleware("auth");
 
 //Processes Masive
 Route.group(() => {
   Route.resource("/processes-massive", "MassiveProcessesController").apiOnly();
-}).prefix("/api/v1/document-management/gestion");
+}).prefix("/api/v1/document-management/gestion").middleware("auth");
