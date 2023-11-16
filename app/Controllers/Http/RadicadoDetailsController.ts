@@ -150,22 +150,19 @@ export default class RadicadoDetailsController {
     }
   }
 
-  public async getSummaryRecipients({
-    request,
-    response,
-  }: HttpContextContract) {
+  public async getSummaryRecipients({ request, response }: HttpContextContract) {
     try {
       const id = request.input("id-destinatario");
       const query = Database.from("radicado_details as rd")
         .select(
           Database.raw(`
             CASE
-              WHEN DATEDIFF(CURDATE(), rd.created_at) > ib.INF_TIMEPO_RESPUESTA * CASE WHEN ib.INF_UNIDAD = 'Días' THEN 1 ELSE (1 / (24 * 60)) END THEN 'documentos_vencidos_sin_tramitar'
+              WHEN TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) - (2 * FLOOR(TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) / 7)) > ib.INF_TIMEPO_RESPUESTA * CASE WHEN ib.INF_UNIDAD = 'Días' THEN 1 ELSE (1 / (24 * 60)) END THEN 'documentos_vencidos_sin_tramitar'
               ELSE
                 CASE
-                  WHEN DATEDIFF(CURDATE(), rd.created_at) / ib.INF_TIMEPO_RESPUESTA <= 0.5 THEN 'documentos_en_fase_inicial_de_tramite'
-                  WHEN DATEDIFF(CURDATE(), rd.created_at) / ib.INF_TIMEPO_RESPUESTA <= 0.8 THEN 'documentos_a_tramitar_prontamente'
-                  WHEN DATEDIFF(CURDATE(), rd.created_at) / ib.INF_TIMEPO_RESPUESTA <= 1.0 THEN 'documentos_proximos_a_vencerse'
+                  WHEN (TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) - (2 * FLOOR(TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) / 7))) / ib.INF_TIMEPO_RESPUESTA <= 0.5 THEN 'documentos_en_fase_inicial_de_tramite'
+                  WHEN (TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) - (2 * FLOOR(TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) / 7))) / ib.INF_TIMEPO_RESPUESTA <= 0.8 THEN 'documentos_a_tramitar_prontamente'
+                  WHEN (TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) - (2 * FLOOR(TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) / 7))) / ib.INF_TIMEPO_RESPUESTA <= 1.0 THEN 'documentos_proximos_a_vencerse'
                   ELSE 'documentos_vencidos_sin_tramitar'
                 END
             END as estado_documento
@@ -191,12 +188,12 @@ export default class RadicadoDetailsController {
 
       query.groupByRaw(`
         CASE
-          WHEN DATEDIFF(CURDATE(), rd.created_at) > ib.INF_TIMEPO_RESPUESTA * CASE WHEN ib.INF_UNIDAD = 'Días' THEN 1 ELSE (1 / (24 * 60)) END THEN 'documentos_vencidos_sin_tramitar'
+          WHEN TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) - (2 * FLOOR(TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) / 7)) > ib.INF_TIMEPO_RESPUESTA * CASE WHEN ib.INF_UNIDAD = 'Días' THEN 1 ELSE (1 / (24 * 60)) END THEN 'documentos_vencidos_sin_tramitar'
           ELSE
             CASE
-              WHEN DATEDIFF(CURDATE(), rd.created_at) / ib.INF_TIMEPO_RESPUESTA <= 0.5 THEN 'documentos_en_fase_inicial_de_tramite'
-              WHEN DATEDIFF(CURDATE(), rd.created_at) / ib.INF_TIMEPO_RESPUESTA <= 0.8 THEN 'documentos_a_tramitar_prontamente'
-              WHEN DATEDIFF(CURDATE(), rd.created_at) / ib.INF_TIMEPO_RESPUESTA <= 1.0 THEN 'documentos_proximos_a_vencerse'
+              WHEN (TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) - (2 * FLOOR(TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) / 7))) / ib.INF_TIMEPO_RESPUESTA <= 0.5 THEN 'documentos_en_fase_inicial_de_tramite'
+              WHEN (TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) - (2 * FLOOR(TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) / 7))) / ib.INF_TIMEPO_RESPUESTA <= 0.8 THEN 'documentos_a_tramitar_prontamente'
+              WHEN (TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) - (2 * FLOOR(TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) / 7))) / ib.INF_TIMEPO_RESPUESTA <= 1.0 THEN 'documentos_proximos_a_vencerse'
               ELSE 'documentos_vencidos_sin_tramitar'
             END
         END
@@ -237,6 +234,7 @@ export default class RadicadoDetailsController {
         .json({ data: null, message: { error: "Hubo un error" } });
     }
   }
+
 
   public async getSummaryFileds({ response }: HttpContextContract) {
     try {
