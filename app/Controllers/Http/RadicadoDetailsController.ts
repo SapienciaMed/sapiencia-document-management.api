@@ -159,20 +159,16 @@ export default class RadicadoDetailsController {
       const query = Database.from("radicado_details as rd")
         .select(
           Database.raw(`
-              CASE
-                  WHEN rd.DRA_FECHA_EVACUACION_SALIDA IS NULL THEN
-                      CASE
-                          WHEN DATEDIFF(CURDATE(), rd.DRA_FECHA_RADICADO) > 15 THEN 'documentos_vencidos_sin_tramitar'
-                          ELSE 'documentos_en_fase_inicial_de_tramite'
-                      END
-                  ELSE
-                      CASE
-                          WHEN DATEDIFF(rd.DRA_FECHA_EVACUACION_SALIDA, rd.DRA_FECHA_RADICADO) / DATEDIFF(CURDATE(), rd.DRA_FECHA_RADICADO) <= 0.5 THEN 'documentos_en_fase_inicial_de_tramite'
-                          WHEN DATEDIFF(rd.DRA_FECHA_EVACUACION_SALIDA, rd.DRA_FECHA_RADICADO) / DATEDIFF(CURDATE(), rd.DRA_FECHA_RADICADO) <= 0.8 THEN 'documentos_a_tramitar_prontamente'
-                          WHEN DATEDIFF(rd.DRA_FECHA_EVACUACION_SALIDA, rd.DRA_FECHA_RADICADO) / DATEDIFF(CURDATE(), rd.DRA_FECHA_RADICADO) <= 1.0 THEN 'documentos_proximos_a_vencerse'
-                          ELSE 'documentos_vencidos_sin_tramitar'
-                      END
-              END as estado_documento
+            CASE
+              WHEN DATEDIFF(CURDATE(), rd.created_at) > ib.INF_TIMEPO_RESPUESTA * CASE WHEN ib.INF_UNIDAD = 'Días' THEN 1 ELSE (1 / (24 * 60)) END THEN 'documentos_vencidos_sin_tramitar'
+              ELSE
+                CASE
+                  WHEN DATEDIFF(CURDATE(), rd.created_at) / ib.INF_TIMEPO_RESPUESTA <= 0.5 THEN 'documentos_en_fase_inicial_de_tramite'
+                  WHEN DATEDIFF(CURDATE(), rd.created_at) / ib.INF_TIMEPO_RESPUESTA <= 0.8 THEN 'documentos_a_tramitar_prontamente'
+                  WHEN DATEDIFF(CURDATE(), rd.created_at) / ib.INF_TIMEPO_RESPUESTA <= 1.0 THEN 'documentos_proximos_a_vencerse'
+                  ELSE 'documentos_vencidos_sin_tramitar'
+                END
+            END as estado_documento
           `)
         )
         .leftJoin(
@@ -184,25 +180,26 @@ export default class RadicadoDetailsController {
           "RCD_RADICADO_COPIAS_DESTINATARIO as rcd",
           "rd.DRA_RADICADO",
           "rcd.RCD_RADICADO"
+        )
+        .leftJoin(
+          "INF_INFORMACION_BASICA as ib",
+          "rd.DRA_CODIGO_ASUNTO",
+          "ib.INF_CODIGO_ASUNTO"
         );
 
       query.select(Database.raw("COUNT(*) as contador_estado"));
 
       query.groupByRaw(`
-          CASE
-              WHEN rd.DRA_FECHA_EVACUACION_SALIDA IS NULL THEN
-                  CASE
-                      WHEN DATEDIFF(CURDATE(), rd.DRA_FECHA_RADICADO) > 15 THEN 'documentos_vencidos_sin_tramitar'
-                      ELSE 'documentos_en_fase_inicial_de_tramite'
-                  END
-              ELSE
-                  CASE
-                      WHEN DATEDIFF(rd.DRA_FECHA_EVACUACION_SALIDA, rd.DRA_FECHA_RADICADO) / DATEDIFF(CURDATE(), rd.DRA_FECHA_RADICADO) <= 0.5 THEN 'documentos_en_fase_inicial_de_tramite'
-                      WHEN DATEDIFF(rd.DRA_FECHA_EVACUACION_SALIDA, rd.DRA_FECHA_RADICADO) / DATEDIFF(CURDATE(), rd.DRA_FECHA_RADICADO) <= 0.8 THEN 'documentos_a_tramitar_prontamente'
-                      WHEN DATEDIFF(rd.DRA_FECHA_EVACUACION_SALIDA, rd.DRA_FECHA_RADICADO) / DATEDIFF(CURDATE(), rd.DRA_FECHA_RADICADO) <= 1.0 THEN 'documentos_proximos_a_vencerse'
-                      ELSE 'documentos_vencidos_sin_tramitar'
-                  END
-          END
+        CASE
+          WHEN DATEDIFF(CURDATE(), rd.created_at) > ib.INF_TIMEPO_RESPUESTA * CASE WHEN ib.INF_UNIDAD = 'Días' THEN 1 ELSE (1 / (24 * 60)) END THEN 'documentos_vencidos_sin_tramitar'
+          ELSE
+            CASE
+              WHEN DATEDIFF(CURDATE(), rd.created_at) / ib.INF_TIMEPO_RESPUESTA <= 0.5 THEN 'documentos_en_fase_inicial_de_tramite'
+              WHEN DATEDIFF(CURDATE(), rd.created_at) / ib.INF_TIMEPO_RESPUESTA <= 0.8 THEN 'documentos_a_tramitar_prontamente'
+              WHEN DATEDIFF(CURDATE(), rd.created_at) / ib.INF_TIMEPO_RESPUESTA <= 1.0 THEN 'documentos_proximos_a_vencerse'
+              ELSE 'documentos_vencidos_sin_tramitar'
+            END
+        END
       `);
 
       query
@@ -243,42 +240,36 @@ export default class RadicadoDetailsController {
 
   public async getSummaryFileds({ response }: HttpContextContract) {
     try {
-      const query = Database.from("radicado_details as rd").select(
-        Database.raw(`
-              CASE
-                  WHEN rd.DRA_FECHA_EVACUACION_SALIDA IS NULL THEN
-                      CASE
-                          WHEN DATEDIFF(CURDATE(), rd.DRA_FECHA_RADICADO) > 15 THEN 'documentos_vencidos_sin_tramitar'
-                          ELSE 'documentos_en_fase_inicial_de_tramite'
-                      END
-                  ELSE
-                      CASE
-                          WHEN DATEDIFF(rd.DRA_FECHA_EVACUACION_SALIDA, rd.DRA_FECHA_RADICADO) / DATEDIFF(CURDATE(), rd.DRA_FECHA_RADICADO) <= 0.5 THEN 'documentos_en_fase_inicial_de_tramite'
-                          WHEN DATEDIFF(rd.DRA_FECHA_EVACUACION_SALIDA, rd.DRA_FECHA_RADICADO) / DATEDIFF(CURDATE(), rd.DRA_FECHA_RADICADO) <= 0.8 THEN 'documentos_a_tramitar_prontamente'
-                          WHEN DATEDIFF(rd.DRA_FECHA_EVACUACION_SALIDA, rd.DRA_FECHA_RADICADO) / DATEDIFF(CURDATE(), rd.DRA_FECHA_RADICADO) <= 1.0 THEN 'documentos_proximos_a_vencerse'
-                          ELSE 'documentos_vencidos_sin_tramitar'
-                      END
-              END as estado_documento
+      const query = Database.from("radicado_details as rd")
+        .join("INF_INFORMACION_BASICA as ib", "rd.DRA_CODIGO_ASUNTO", "ib.INF_CODIGO_ASUNTO")
+        .select(
+          Database.raw(`
+            CASE
+              WHEN TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) - (2 * FLOOR(TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) / 7)) > ib.INF_TIMEPO_RESPUESTA * CASE WHEN ib.INF_UNIDAD = 'Días' THEN 1 ELSE (1 / (24 * 60)) END THEN 'documentos_vencidos_sin_tramitar'
+              ELSE
+                CASE
+                  WHEN (TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) - (2 * FLOOR(TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) / 7))) / ib.INF_TIMEPO_RESPUESTA <= 0.5 THEN 'documentos_en_fase_inicial_de_tramite'
+                  WHEN (TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) - (2 * FLOOR(TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) / 7))) / ib.INF_TIMEPO_RESPUESTA <= 0.8 THEN 'documentos_a_tramitar_prontamente'
+                  WHEN (TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) - (2 * FLOOR(TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) / 7))) / ib.INF_TIMEPO_RESPUESTA <= 1.0 THEN 'documentos_proximos_a_vencerse'
+                  ELSE 'documentos_vencidos_sin_tramitar'
+                END
+            END as estado_documento
           `)
-      );
+        );
 
       query.select(Database.raw("COUNT(*) as contador_estado"));
 
       query.groupByRaw(`
-          CASE
-              WHEN rd.DRA_FECHA_EVACUACION_SALIDA IS NULL THEN
-                  CASE
-                      WHEN DATEDIFF(CURDATE(), rd.DRA_FECHA_RADICADO) > 15 THEN 'documentos_vencidos_sin_tramitar'
-                      ELSE 'documentos_en_fase_inicial_de_tramite'
-                  END
-              ELSE
-                  CASE
-                      WHEN DATEDIFF(rd.DRA_FECHA_EVACUACION_SALIDA, rd.DRA_FECHA_RADICADO) / DATEDIFF(CURDATE(), rd.DRA_FECHA_RADICADO) <= 0.5 THEN 'documentos_en_fase_inicial_de_tramite'
-                      WHEN DATEDIFF(rd.DRA_FECHA_EVACUACION_SALIDA, rd.DRA_FECHA_RADICADO) / DATEDIFF(CURDATE(), rd.DRA_FECHA_RADICADO) <= 0.8 THEN 'documentos_a_tramitar_prontamente'
-                      WHEN DATEDIFF(rd.DRA_FECHA_EVACUACION_SALIDA, rd.DRA_FECHA_RADICADO) / DATEDIFF(CURDATE(), rd.DRA_FECHA_RADICADO) <= 1.0 THEN 'documentos_proximos_a_vencerse'
-                      ELSE 'documentos_vencidos_sin_tramitar'
-                  END
-          END
+        CASE
+          WHEN TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) - (2 * FLOOR(TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) / 7)) > ib.INF_TIMEPO_RESPUESTA * CASE WHEN ib.INF_UNIDAD = 'Días' THEN 1 ELSE (1 / (24 * 60)) END THEN 'documentos_vencidos_sin_tramitar'
+          ELSE
+            CASE
+              WHEN (TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) - (2 * FLOOR(TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) / 7))) / ib.INF_TIMEPO_RESPUESTA <= 0.5 THEN 'documentos_en_fase_inicial_de_tramite'
+              WHEN (TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) - (2 * FLOOR(TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) / 7))) / ib.INF_TIMEPO_RESPUESTA <= 0.8 THEN 'documentos_a_tramitar_prontamente'
+              WHEN (TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) - (2 * FLOOR(TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) / 7))) / ib.INF_TIMEPO_RESPUESTA <= 1.0 THEN 'documentos_proximos_a_vencerse'
+              ELSE 'documentos_vencidos_sin_tramitar'
+            END
+        END
       `);
 
       const totalQuery = Database.from("radicado_details as rd").select(

@@ -19,7 +19,7 @@ export default class extends BaseSchema {
         .comment("Código identificador del asunto");
 
       table
-        .string("INF_NOMBRE_ASUNTO", 50)
+        .string("INF_NOMBRE_ASUNTO", 250)
         .notNullable()
         .comment("Nombre del asunto");
 
