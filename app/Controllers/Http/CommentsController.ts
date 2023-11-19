@@ -3,6 +3,7 @@ import Database from "@ioc:Adonis/Lucid/Database";
 import { EResponseCodes } from "App/Constants/ResponseCodesEnum";
 import Comment from "App/Models/Comment";
 import { ApiResponse } from "App/Utils/ApiResponses";
+import moment from "moment";
 
 export default class CommentsController {
   public async index({}: HttpContextContract) {}
@@ -30,7 +31,6 @@ export default class CommentsController {
       await this.insertRadicadoMovement(request.body().dra_radicado);
       await this.updateRadicado(request.body());
       const comment = new Comment();
-      //const data = await request.validate(GeneralConfigurationValidator);
       comment.fill({
         inf_radicado: request.body().dra_radicado,
         inf_comentario: request.body().comentario,
@@ -66,8 +66,9 @@ export default class CommentsController {
     if (data.typeModal == "Activar" || data.typeModal == "asignar") {
       try {
         await Database.rawQuery(
-          `UPDATE radicado_details SET dra_id_destinatario = ?, dra_estado_radicado = ?, dra_usuario = ? WHERE dra_radicado = ?`,
+          `UPDATE radicado_details SET dra_fecha_evacuacion_entrada = ?, dra_id_destinatario = ?, dra_estado_radicado = ?, dra_usuario = ? WHERE dra_radicado = ?`,
           [
+            moment().format("YYYY-MM-DD HH:mm:ss"),
             data.dra_destinatario,
             data.dra_estado_radicado,
             data.dra_usuario,
@@ -93,7 +94,7 @@ export default class CommentsController {
 
   public async show({ request, response }: HttpContextContract) {
     const { id } = request.params();
-
+    console.log(process.env.CURRENT_USER_DOCUMENT);
     try {
       const comments = await Comment.query().where("inf_radicado", id);
 

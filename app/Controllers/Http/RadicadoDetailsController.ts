@@ -303,6 +303,7 @@ export default class RadicadoDetailsController {
   }
 
   public async findById({ request, response }: HttpContextContract) {
+    console.log(request.params(), "PARAMS");
     const { id } = request.params();
     try {
       const RadicadoById = RadicadoDetail.query();
