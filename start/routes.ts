@@ -38,7 +38,6 @@ Route.group(() => {
     "GenericListController.getGenericListByGroupers"
   );
 }).prefix("/api/v1/generic-list").middleware("auth");
-// .middleware("auth");
 
 //Radicado Details
 Route.group(() => {
@@ -103,7 +102,7 @@ Route.group(() => {
   Route.get(
     "/radicado-details/find-all-pending",
     "RadicadoDetailsController.findAllPending"
-  );
+  ).middleware("auth:BANDEJA_DESTINATARIOS");
 
   Route.resource("/radicado-details", "RadicadoDetailsController").apiOnly();
 }).prefix("/api/v1/document-management").middleware("auth");
@@ -180,11 +179,14 @@ Route.group(() => {
   );
   //post for table search
   Route.post("/entities/find", "EntitiesController.find");
-}).prefix("/api/v1/document-management").middleware("auth");
+}).prefix("/api/v1/document-management").middleware("auth:MENU_RADICACION");
 
 //Radicado Comments
 Route.group(() => {
-  Route.resource("/comment", "CommentsController").apiOnly();
+  Route.resource("/comment", "CommentsController").apiOnly().middleware({
+    store:["auth:MOVIMIENTOS,BANDEJA_DESTINATARIOS"],
+    show:["auth:MOVIMIENTOS,BANDEJA_DESTINATARIOS,BANDEJA_RADICADOS"],
+  });
 }).prefix("/api/v1/document-management/radicado").middleware("auth");
 
 //Generic Lists
@@ -197,4 +199,4 @@ Route.group(() => {
 //Processes Masive
 Route.group(() => {
   Route.resource("/processes-massive", "MassiveProcessesController").apiOnly();
-}).prefix("/api/v1/document-management/gestion").middleware("auth");
+}).prefix("/api/v1/document-management/gestion").middleware("auth:PROCESOS_MASIVOS");
