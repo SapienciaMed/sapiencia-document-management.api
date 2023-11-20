@@ -150,7 +150,10 @@ export default class RadicadoDetailsController {
     }
   }
 
-  public async getSummaryRecipients({ request, response }: HttpContextContract) {
+  public async getSummaryRecipients({
+    request,
+    response,
+  }: HttpContextContract) {
     try {
       const id = request.input("id-destinatario");
       const query = Database.from("radicado_details as rd")
@@ -235,11 +238,14 @@ export default class RadicadoDetailsController {
     }
   }
 
-
   public async getSummaryFileds({ response }: HttpContextContract) {
     try {
       const query = Database.from("radicado_details as rd")
-        .join("INF_INFORMACION_BASICA as ib", "rd.DRA_CODIGO_ASUNTO", "ib.INF_CODIGO_ASUNTO")
+        .join(
+          "INF_INFORMACION_BASICA as ib",
+          "rd.DRA_CODIGO_ASUNTO",
+          "ib.INF_CODIGO_ASUNTO"
+        )
         .select(
           Database.raw(`
             CASE
@@ -303,35 +309,51 @@ export default class RadicadoDetailsController {
   }
 
   public async findById({ request, response }: HttpContextContract) {
-    console.log(request.params(), "PARAMS");
+    const { numberDocument, role } = request.qs();
+
     const { id } = request.params();
     try {
-      const RadicadoById = RadicadoDetail.query();
+      if (numberDocument == process.env.CURRENT_USER_DOCUMENT) {
+        const RadicadoById = RadicadoDetail.query();
 
-      if (id) {
-        RadicadoById.orWhere("DRA_RADICADO", "like", `%${id}%`);
-      }
+        if (id) {
+          RadicadoById.orWhere("DRA_RADICADO", "like", `%${id}%`);
+        }
 
-      const data = await RadicadoById.preload("rn_radicado_remitente_to_entity")
-        .preload("rn_radicado_destinatario_to_entity")
-        .select("*")
-        .limit(100);
-
-      if (data.length == 0) {
-        return response
-          .status(404)
-          .send(
-            new ApiResponse(
-              [],
-              EResponseCodes.NOT_FOUND,
-              "No hay registros para mostrar"
-            )
+        if (role !== "ADM_ROL") {
+          RadicadoById.where(
+            "DRA_ID_DESTINATARIO",
+            "=",
+            `${process.env.CURRENT_USER_DOCUMENT}`
           );
-      }
+        }
 
-      return response
-        .status(200)
-        .send(new ApiResponse(data, EResponseCodes.OK, "Datos Encontrados"));
+        const data = await RadicadoById.preload(
+          "rn_radicado_remitente_to_entity"
+        )
+          .preload("rn_radicado_destinatario_to_entity")
+          .select("*")
+          .limit(100);
+
+        if (data.length == 0) {
+          return response
+            .status(404)
+            .send(
+              new ApiResponse(
+                [],
+                EResponseCodes.NOT_FOUND,
+                "No hay registros para mostrar"
+              )
+            );
+        }
+
+        return response
+          .status(200)
+          .send(new ApiResponse(data, EResponseCodes.OK, "Datos Encontrados"));
+      } else {
+        console.error("Intenta acceder de manera incorrecta");
+        throw new Error("Intenta acceder de manera incorrecta");
+      }
     } catch (error) {
       return response
         .status(400)
@@ -454,7 +476,6 @@ export default class RadicadoDetailsController {
     const files = request.files("files");
 
     try {
-      console.log(request.all());
       const invalidRadicados: string[] = [];
       const radicados: string[] = [];
 
@@ -519,63 +540,69 @@ export default class RadicadoDetailsController {
   async create({ request, response }: HttpContextContract) {
     try {
       const data = request.only([
-        'DRA_FECHA_RADICADO',
-        'DRA_TIPO_RADICADO',
-        'DRA_RADICADO_ORIGEN',
-        'DRA_RADICADO_POR',
-        'DRA_NOMBRE_RADICADOR',
-        'DRA_ID_REMITENTE',
-        'DRA_CODIGO_ASUNTO',
-        'DRA_TIPO_ASUNTO',
-        'DRA_PRIORIDAD_ASUNTO',
-        'DRA_ID_DESTINATARIO',
-        'DRA_OBSERVACION',
-        'DRA_NUM_ANEXOS',
-        'DRA_NUM_FOLIOS',
-        'DRA_NUM_CAJAS',
-        'DRA_TIPO_DOCUMENTO_RADICADO',
-        'DRA_PRIORIDAD',
-        'DRA_TIPO_INFO',
-        'DRA_CREADO_POR',
-        'DRA_ESTADO',
+        "DRA_FECHA_RADICADO",
+        "DRA_TIPO_RADICADO",
+        "DRA_RADICADO_ORIGEN",
+        "DRA_RADICADO_POR",
+        "DRA_NOMBRE_RADICADOR",
+        "DRA_ID_REMITENTE",
+        "DRA_CODIGO_ASUNTO",
+        "DRA_TIPO_ASUNTO",
+        "DRA_PRIORIDAD_ASUNTO",
+        "DRA_ID_DESTINATARIO",
+        "DRA_OBSERVACION",
+        "DRA_NUM_ANEXOS",
+        "DRA_NUM_FOLIOS",
+        "DRA_NUM_CAJAS",
+        "DRA_TIPO_DOCUMENTO_RADICADO",
+        "DRA_PRIORIDAD",
+        "DRA_TIPO_INFO",
+        "DRA_CREADO_POR",
+        "DRA_ESTADO",
       ]);
 
-      console.log('data', data)
-
-      const currentCGERecibido = await Database.from('CGE_CONFIGURACION_GENERAL')
-        .where('CGE_CODIGO', 1)
-        .select('CGE_RECIBIDO')
+      const currentCGERecibido = await Database.from(
+        "CGE_CONFIGURACION_GENERAL"
+      )
+        .where("CGE_CODIGO", 1)
+        .select("CGE_RECIBIDO")
         .first();
 
-      console.log('currentCGERecibido', currentCGERecibido)
       if (currentCGERecibido) {
-        await Database.from('CGE_CONFIGURACION_GENERAL')
-          .where('CGE_CODIGO', 1)
-          .increment('CGE_RECIBIDO', 1);
+        await Database.from("CGE_CONFIGURACION_GENERAL")
+          .where("CGE_CODIGO", 1)
+          .increment("CGE_RECIBIDO", 1);
       }
 
-      await Database.table('radicado_details').insert({
-        'DRA_RADICADO': currentCGERecibido.CGE_RECIBIDO + 1,
-        ...data
+      await Database.table("radicado_details").insert({
+        DRA_RADICADO: currentCGERecibido.CGE_RECIBIDO + 1,
+        ...data,
       });
 
-      const copiesData = request.input('copies', []).map((copy) => ({
+      const copiesData = request.input("copies", []).map((copy) => ({
         ...copy,
         RCD_RADICADO: currentCGERecibido.CGE_RECIBIDO + 1,
       }));
 
       if (copiesData.length > 0) {
-        await Database.table('RCD_RADICADO_COPIAS_DESTINATARIO').insert(copiesData);
+        await Database.table("RCD_RADICADO_COPIAS_DESTINATARIO").insert(
+          copiesData
+        );
       }
 
-      return response.status(201).json({ message: 'Radicado guardado exitosamente', data: {
-        radicado: data,
-        copias: copiesData,
-        num_radicado: currentCGERecibido.CGE_RECIBIDO + 1
-      } });
+      return response.status(201).json({
+        message: "Radicado guardado exitosamente",
+        data: {
+          radicado: data,
+          copias: copiesData,
+          num_radicado: currentCGERecibido.CGE_RECIBIDO + 1,
+        },
+      });
     } catch (error) {
-      console.log(error)
-      return response.status(500).json({ error: 'Ocurrió un error al guardar el radicado' });
+      console.log(error);
+      return response
+        .status(500)
+        .json({ error: "Ocurrió un error al guardar el radicado" });
     }
   }
 
@@ -584,9 +611,9 @@ export default class RadicadoDetailsController {
       const { userId } = request.params();
       let copies: any = [];
 
-      const radicado = await Database.from('radicado_details')
-        .where('DRA_CREADO_POR', userId)
-        .where('DRA_ESTADO', 'INCOMPLETO')
+      const radicado = await Database.from("radicado_details")
+        .where("DRA_CREADO_POR", userId)
+        .where("DRA_ESTADO", "INCOMPLETO")
         .first();
 
       if (!radicado) {
@@ -596,17 +623,20 @@ export default class RadicadoDetailsController {
         });
       }
 
-      copies = await Database.from('RCD_RADICADO_COPIAS_DESTINATARIO')
-        .where('RCD_RADICADO', radicado.DRA_RADICADO);
+      copies = await Database.from("RCD_RADICADO_COPIAS_DESTINATARIO").where(
+        "RCD_RADICADO",
+        radicado.DRA_RADICADO
+      );
 
       return response.json({
         radicado: radicado,
         copias: copies,
       });
-
     } catch (error) {
       console.log(error);
-      return response.status(500).json({ error: 'Ocurrió un error al consultar el radicado' });
+      return response
+        .status(500)
+        .json({ error: "Ocurrió un error al consultar el radicado" });
     }
   }
 
@@ -615,56 +645,57 @@ export default class RadicadoDetailsController {
       const { numRadicado } = request.params();
 
       const data = request.only([
-        'DRA_FECHA_RADICADO',
-        'DRA_TIPO_RADICADO',
-        'DRA_RADICADO_ORIGEN',
-        'DRA_RADICADO_POR',
-        'DRA_NOMBRE_RADICADOR',
-        'DRA_ID_REMITENTE',
-        'DRA_CODIGO_ASUNTO',
-        'DRA_TIPO_ASUNTO',
-        'DRA_PRIORIDAD_ASUNTO',
-        'DRA_ID_DESTINATARIO',
-        'DRA_OBSERVACION',
-        'DRA_OPCIONES_RESPUESTA',
-        'DRA_REFERENCIA',
-        'DRA_NUM_ANEXOS',
-        'DRA_NUM_FOLIOS',
-        'DRA_NUM_CAJAS',
-        'DRA_TIPO_DOCUMENTO_RADICADO',
-        'DRA_PRIORIDAD',
-        'DRA_TIPO_INFO',
-        'DRA_ESTADO',
+        "DRA_FECHA_RADICADO",
+        "DRA_TIPO_RADICADO",
+        "DRA_RADICADO_ORIGEN",
+        "DRA_RADICADO_POR",
+        "DRA_NOMBRE_RADICADOR",
+        "DRA_ID_REMITENTE",
+        "DRA_CODIGO_ASUNTO",
+        "DRA_TIPO_ASUNTO",
+        "DRA_PRIORIDAD_ASUNTO",
+        "DRA_ID_DESTINATARIO",
+        "DRA_OBSERVACION",
+        "DRA_OPCIONES_RESPUESTA",
+        "DRA_REFERENCIA",
+        "DRA_NUM_ANEXOS",
+        "DRA_NUM_FOLIOS",
+        "DRA_NUM_CAJAS",
+        "DRA_TIPO_DOCUMENTO_RADICADO",
+        "DRA_PRIORIDAD",
+        "DRA_TIPO_INFO",
+        "DRA_ESTADO",
       ]);
 
-      await Database
-        .from('radicado_details')
-        .where('DRA_RADICADO', numRadicado)
+      await Database.from("radicado_details")
+        .where("DRA_RADICADO", numRadicado)
         .update(data);
 
-      const copiesData = request.input('copies', []).map((copy) => ({
+      const copiesData = request.input("copies", []).map((copy) => ({
         ...copy,
         RCD_RADICADO: numRadicado,
       }));
 
       if (copiesData.length > 0) {
-        await Database
-          .from('RCD_RADICADO_COPIAS_DESTINATARIO')
-          .where('RCD_RADICADO', numRadicado)
+        await Database.from("RCD_RADICADO_COPIAS_DESTINATARIO")
+          .where("RCD_RADICADO", numRadicado)
           .delete();
-        await Database
-          .table('RCD_RADICADO_COPIAS_DESTINATARIO')
-          .insert(copiesData);
+        await Database.table("RCD_RADICADO_COPIAS_DESTINATARIO").insert(
+          copiesData
+        );
       }
 
-      const rrrData = request.input('rrData', []) as { RRR_ID_RADICADO:string, RRR_ID_RESPUESTAS_RELACIONADAS: string }[];
+      const rrrData = request.input("rrData", []) as {
+        RRR_ID_RADICADO: string;
+        RRR_ID_RESPUESTAS_RELACIONADAS: string;
+      }[];
 
       if (rrrData.length > 0) {
-        await Database.table('RRR_RESPUESTAS_RELACIONADAS').insert(rrrData );
+        await Database.table("RRR_RESPUESTAS_RELACIONADAS").insert(rrrData);
       }
 
-      const files = request.files('files');
-      const bucketName = 'sapiencia-document-management';
+      const files = request.files("files");
+      const bucketName = "sapiencia-document-management";
       const storage = new Storage();
       const bucket = storage.bucket(bucketName);
 
@@ -674,54 +705,73 @@ export default class RadicadoDetailsController {
           await bucket.upload(file.tmpPath, {
             destination: `${uniqueFileName}`,
           });
-          await Database.table('ARA_ADJUNTOS_RADICADOS').insert({
+          await Database.table("ARA_ADJUNTOS_RADICADOS").insert({
             ARA_RADICADO: numRadicado,
             ARA_PATH: uniqueFileName,
           });
         } else {
           return response.status(400).json({
-            message: 'Error al subir archivos',
+            message: "Error al subir archivos",
           });
         }
       }
 
-      return response.json({ message: 'Radicado actualizado exitosamente' });
+      return response.json({ message: "Radicado actualizado exitosamente" });
     } catch (error) {
       console.log(error);
-      return response.status(500).json({ error: 'Ocurrió un error al actualizar el radicado' });
+      return response
+        .status(500)
+        .json({ error: "Ocurrió un error al actualizar el radicado" });
     }
   }
 
   public async findAllPending({ request, response }: HttpContextContract) {
+    const { numberDocument, role } = request.qs();
     const { id } = request.params();
+
     try {
-      const RadicadoById = RadicadoDetail.query();
+      if (numberDocument == process.env.CURRENT_USER_DOCUMENT) {
+        const RadicadoById = RadicadoDetail.query();
 
-      if (id) {
-        RadicadoById.orWhere("DRA_RADICADO", "like", `%${id}%`);
-      }
+        if (id) {
+          RadicadoById.orWhere("DRA_RADICADO", "like", `%${id}%`);
+        }
 
-      const data = await RadicadoById.preload("rn_radicado_remitente_to_entity")
-        .preload("rn_radicado_destinatario_to_entity")
-        .where("dra_estado_radicado", "Pendiente")
-        .select("*")
-        .limit(100);
-
-      if (data.length == 0) {
-        return response
-          .status(404)
-          .send(
-            new ApiResponse(
-              [],
-              EResponseCodes.NOT_FOUND,
-              "No hay registros para mostrar"
-            )
+        if (role !== "ADM_ROL") {
+          RadicadoById.where(
+            "dra_id_destinatario",
+            "=",
+            `${process.env.CURRENT_USER_DOCUMENT}`
           );
-      }
+        }
 
-      return response
-        .status(200)
-        .send(new ApiResponse(data, EResponseCodes.OK, "Datos Encontrados"));
+        const data = await RadicadoById.preload(
+          "rn_radicado_remitente_to_entity"
+        )
+          .preload("rn_radicado_destinatario_to_entity")
+          .where("dra_estado_radicado", "Pendiente")
+          .select("*")
+          .limit(100);
+
+        if (data.length == 0) {
+          return response
+            .status(404)
+            .send(
+              new ApiResponse(
+                [],
+                EResponseCodes.NOT_FOUND,
+                "No hay registros para mostrar"
+              )
+            );
+        }
+
+        return response
+          .status(200)
+          .send(new ApiResponse(data, EResponseCodes.OK, "Datos Encontrados"));
+      } else {
+        console.error("Intenta acceder de manera incorrecta");
+        throw new Error("Intenta acceder de manera incorrecta");
+      }
     } catch (error) {
       return response
         .status(400)

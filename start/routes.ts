@@ -37,7 +37,9 @@ Route.group(() => {
     "/get-by-groupers",
     "GenericListController.getGenericListByGroupers"
   );
-}).prefix("/api/v1/generic-list").middleware("auth");
+})
+  .prefix("/api/v1/generic-list")
+  .middleware("auth");
 
 //Radicado Details
 Route.group(() => {
@@ -59,10 +61,7 @@ Route.group(() => {
     "RadicadoDetailsController.massiveIndexing"
   );
 
-  Route.post(
-    "/radicado-details/create",
-    "RadicadoDetailsController.create"
-  );
+  Route.post("/radicado-details/create", "RadicadoDetailsController.create");
 
   Route.put(
     "/radicado-details/complete/:numRadicado",
@@ -105,7 +104,9 @@ Route.group(() => {
   ).middleware("auth:BANDEJA_DESTINATARIOS");
 
   Route.resource("/radicado-details", "RadicadoDetailsController").apiOnly();
-}).prefix("/api/v1/document-management").middleware("auth");
+})
+  .prefix("/api/v1/document-management")
+  .middleware("auth");
 
 //Related Answers
 Route.group(() => {
@@ -118,7 +119,9 @@ Route.group(() => {
     "/answer-document/:id/type/:type",
     "RelatedAnswersController.findByIdAndType"
   );
-}).prefix("/api/v1/document-management").middleware("auth");
+})
+  .prefix("/api/v1/document-management")
+  .middleware("auth");
 
 Route.group(() => {
   Route.get(
@@ -134,7 +137,9 @@ Route.group(() => {
     "/update/:id",
     "GeneralConfigurationController.updateGeneralConfiguration"
   );
-}).prefix("/api/v1/general-configuration").middleware("auth");
+})
+  .prefix("/api/v1/general-configuration")
+  .middleware("auth");
 
 Route.group(() => {
   Route.resource(
@@ -143,7 +148,9 @@ Route.group(() => {
   ).apiOnly();
   //post for table search
   Route.post("/sender-information/find", "SenderInformationsController.find");
-}).prefix("/api/v1/document-management").middleware("auth");
+})
+  .prefix("/api/v1/document-management")
+  .middleware("auth");
 
 Route.group(() => {
   Route.get(
@@ -155,7 +162,9 @@ Route.group(() => {
     "/basic-document",
     "BasicDocumentInformationsController"
   ).apiOnly();
-}).prefix("/api/v1/document-management").middleware("auth");
+})
+  .prefix("/api/v1/document-management")
+  .middleware("auth");
 
 Route.group(() => {
   Route.get(
@@ -167,7 +176,9 @@ Route.group(() => {
     "/recipient-information",
     "RecipientInformationsController"
   ).apiOnly();
-}).prefix("/api/v1/document-management").middleware("auth");
+})
+  .prefix("/api/v1/document-management")
+  .middleware("auth");
 
 //Entities
 Route.group(() => {
@@ -179,24 +190,34 @@ Route.group(() => {
   );
   //post for table search
   Route.post("/entities/find", "EntitiesController.find");
-}).prefix("/api/v1/document-management").middleware("auth:MENU_RADICACION");
+})
+  .prefix("/api/v1/document-management")
+  .middleware("auth:MENU_RADICACION");
 
 //Radicado Comments
 Route.group(() => {
-  Route.resource("/comment", "CommentsController").apiOnly().middleware({
-    store:["auth:MOVIMIENTOS,BANDEJA_DESTINATARIOS"],
-    show:["auth:MOVIMIENTOS,BANDEJA_DESTINATARIOS,BANDEJA_RADICADOS"],
-  });
-}).prefix("/api/v1/document-management/radicado").middleware("auth");
+  Route.resource("/comment", "CommentsController")
+    .apiOnly()
+    .middleware({
+      store: ["auth:MOVIMIENTOS,BANDEJA_DESTINATARIOS"],
+      show: ["auth:MOVIMIENTOS,BANDEJA_DESTINATARIOS,BANDEJA_RADICADOS"],
+    });
+})
+  .prefix("/api/v1/document-management/radicado")
+  .middleware("auth");
 
 //Generic Lists
 Route.group(() => {
   Route.get("/geographic-list", "GenericGeographiclListsController.listAll"); //Paises, departamento y municipios
   Route.get("/type-entity-list", "GenericListController.getTypesEntity");
   Route.get("/type-radicado-list", "GenericListController.getTypesRadicado");
-}).prefix("/api/v1/document-management/generic-list").middleware("auth");
+})
+  .prefix("/api/v1/document-management/generic-list")
+  .middleware("auth");
 
 //Processes Masive
 Route.group(() => {
   Route.resource("/processes-massive", "MassiveProcessesController").apiOnly();
-}).prefix("/api/v1/document-management/gestion").middleware("auth:PROCESOS_MASIVOS");
+})
+  .prefix("/api/v1/document-management/gestion")
+  .middleware("auth:PROCESOS_MASIVOS");
