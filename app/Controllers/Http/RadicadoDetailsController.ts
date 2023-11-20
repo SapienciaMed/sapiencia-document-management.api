@@ -153,21 +153,17 @@ export default class RadicadoDetailsController {
   public async getSummaryRecipients({ request, response }: HttpContextContract) {
     try {
       const id = request.input("id-destinatario");
-      const query = Database.from("radicado_details as rd")
-        .select(
-          Database.raw(`
-            CASE
-              WHEN TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) - (2 * FLOOR(TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) / 7)) > ib.INF_TIMEPO_RESPUESTA * CASE WHEN ib.INF_UNIDAD = 'Días' THEN 1 ELSE (1 / (24 * 60)) END THEN 'documentos_vencidos_sin_tramitar'
-              ELSE
-                CASE
-                  WHEN (TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) - (2 * FLOOR(TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) / 7))) / ib.INF_TIMEPO_RESPUESTA <= 0.5 THEN 'documentos_en_fase_inicial_de_tramite'
-                  WHEN (TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) - (2 * FLOOR(TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) / 7))) / ib.INF_TIMEPO_RESPUESTA <= 0.8 THEN 'documentos_a_tramitar_prontamente'
-                  WHEN (TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) - (2 * FLOOR(TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) / 7))) / ib.INF_TIMEPO_RESPUESTA <= 1.0 THEN 'documentos_proximos_a_vencerse'
-                  ELSE 'documentos_vencidos_sin_tramitar'
-                END
-            END as estado_documento
-          `)
-        )
+
+      const cgeConfiguracion = await Database.from("CGE_CONFIGURACION_GENERAL")
+      .select("CGE_DIAS_HABILES")
+      .first();
+
+
+      const useWorkDays = cgeConfiguracion && cgeConfiguracion.CGE_DIAS_HABILES !== null
+      ? cgeConfiguracion.CGE_DIAS_HABILES
+      : false;
+
+      const rads: any[] = await Database.from("radicado_details as rd")
         .leftJoin(
           "ENT_ENTIDAD as ent1",
           "rd.DRA_ID_DESTINATARIO",
@@ -182,50 +178,42 @@ export default class RadicadoDetailsController {
           "INF_INFORMACION_BASICA as ib",
           "rd.DRA_CODIGO_ASUNTO",
           "ib.INF_CODIGO_ASUNTO"
-        );
-
-      query.select(Database.raw("COUNT(*) as contador_estado"));
-
-      query.groupByRaw(`
-        CASE
-          WHEN TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) - (2 * FLOOR(TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) / 7)) > ib.INF_TIMEPO_RESPUESTA * CASE WHEN ib.INF_UNIDAD = 'Días' THEN 1 ELSE (1 / (24 * 60)) END THEN 'documentos_vencidos_sin_tramitar'
-          ELSE
-            CASE
-              WHEN (TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) - (2 * FLOOR(TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) / 7))) / ib.INF_TIMEPO_RESPUESTA <= 0.5 THEN 'documentos_en_fase_inicial_de_tramite'
-              WHEN (TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) - (2 * FLOOR(TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) / 7))) / ib.INF_TIMEPO_RESPUESTA <= 0.8 THEN 'documentos_a_tramitar_prontamente'
-              WHEN (TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) - (2 * FLOOR(TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) / 7))) / ib.INF_TIMEPO_RESPUESTA <= 1.0 THEN 'documentos_proximos_a_vencerse'
-              ELSE 'documentos_vencidos_sin_tramitar'
-            END
-        END
-      `);
-
-      query
+        )
         .where("rd.DRA_ID_DESTINATARIO", id)
-        .orWhere("rcd.RCD_ID_DESTINATARIO", id);
+        .orWhere("rcd.RCD_ID_DESTINATARIO", id)
+        .select("rd.created_at", "ib.INF_TIMEPO_RESPUESTA", "ib.INF_UNIDAD");
 
-      const totalQuery = Database.from("radicado_details as rd").select(
-        Database.raw("COUNT(*) as contador_total")
-      );
+      let workdays = await Database.connection("citizen_attention")
+        .from("PDD_PARAMETRIZACION_DIAS_DETALLE")
+        .where("PDD_CODTDI_DIA", 1)
+        .select("PDD_FECHA");
 
-      const [result, totalResult] = await Promise.all([query, totalQuery]);
+        workdays = workdays.map((item: { PDD_FECHA: string }) => item.PDD_FECHA);
 
-      const responseObj = {
+      const responseObj: Record<string, number> = {
         documentos_vencidos_sin_tramitar: 0,
         documentos_en_fase_inicial_de_tramite: 0,
         documentos_a_tramitar_prontamente: 0,
         documentos_proximos_a_vencerse: 0,
-        total: 0,
+        total: 0
       };
 
-      result.forEach((item) => {
-        responseObj[item.estado_documento] = item.contador_estado;
-      });
+      for (const rad of rads) {
+        const tiempoTranscurrido = await this.calculateElapsedWorkingTime(
+          rad.created_at,
+          rad.INF_UNIDAD,
+          useWorkDays,
+          workdays,
+        );
 
-      responseObj.total = totalResult[0].contador_total;
+        const estado = this.determineRadicadoState(tiempoTranscurrido, rad.INF_TIMEPO_RESPUESTA);
+        responseObj[estado] += 1;
+        responseObj.total++;
+      }
 
       return response.status(200).json({
         data: responseObj,
-        message: { success: "Búsqueda exitosa" },
+        message: { success: "Successful search" },
       });
     } catch (err) {
       console.log(err);
@@ -235,70 +223,99 @@ export default class RadicadoDetailsController {
     }
   }
 
-
   public async getSummaryFileds({ response }: HttpContextContract) {
     try {
-      const query = Database.from("radicado_details as rd")
+      const cgeConfiguracion = await Database.from("CGE_CONFIGURACION_GENERAL")
+        .select("CGE_DIAS_HABILES")
+        .first();
+
+
+        const useWorkDays = cgeConfiguracion && cgeConfiguracion.CGE_DIAS_HABILES !== null
+        ? cgeConfiguracion.CGE_DIAS_HABILES
+        : false;
+
+      const rads: any[] = await Database.from("radicado_details as rd")
         .join("INF_INFORMACION_BASICA as ib", "rd.DRA_CODIGO_ASUNTO", "ib.INF_CODIGO_ASUNTO")
-        .select(
-          Database.raw(`
-            CASE
-              WHEN TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) - (2 * FLOOR(TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) / 7)) > ib.INF_TIMEPO_RESPUESTA * CASE WHEN ib.INF_UNIDAD = 'Días' THEN 1 ELSE (1 / (24 * 60)) END THEN 'documentos_vencidos_sin_tramitar'
-              ELSE
-                CASE
-                  WHEN (TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) - (2 * FLOOR(TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) / 7))) / ib.INF_TIMEPO_RESPUESTA <= 0.5 THEN 'documentos_en_fase_inicial_de_tramite'
-                  WHEN (TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) - (2 * FLOOR(TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) / 7))) / ib.INF_TIMEPO_RESPUESTA <= 0.8 THEN 'documentos_a_tramitar_prontamente'
-                  WHEN (TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) - (2 * FLOOR(TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) / 7))) / ib.INF_TIMEPO_RESPUESTA <= 1.0 THEN 'documentos_proximos_a_vencerse'
-                  ELSE 'documentos_vencidos_sin_tramitar'
-                END
-            END as estado_documento
-          `)
-        );
+        .select("rd.created_at", "ib.INF_TIMEPO_RESPUESTA", "ib.INF_UNIDAD");
 
-      query.select(Database.raw("COUNT(*) as contador_estado"));
+      let workdays = await Database.connection("citizen_attention")
+        .from("PDD_PARAMETRIZACION_DIAS_DETALLE")
+        .where("PDD_CODTDI_DIA", 1)
+        .select("PDD_FECHA");
 
-      query.groupByRaw(`
-        CASE
-          WHEN TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) - (2 * FLOOR(TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) / 7)) > ib.INF_TIMEPO_RESPUESTA * CASE WHEN ib.INF_UNIDAD = 'Días' THEN 1 ELSE (1 / (24 * 60)) END THEN 'documentos_vencidos_sin_tramitar'
-          ELSE
-            CASE
-              WHEN (TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) - (2 * FLOOR(TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) / 7))) / ib.INF_TIMEPO_RESPUESTA <= 0.5 THEN 'documentos_en_fase_inicial_de_tramite'
-              WHEN (TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) - (2 * FLOOR(TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) / 7))) / ib.INF_TIMEPO_RESPUESTA <= 0.8 THEN 'documentos_a_tramitar_prontamente'
-              WHEN (TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) - (2 * FLOOR(TIMESTAMPDIFF(DAY, rd.created_at, CURDATE()) / 7))) / ib.INF_TIMEPO_RESPUESTA <= 1.0 THEN 'documentos_proximos_a_vencerse'
-              ELSE 'documentos_vencidos_sin_tramitar'
-            END
-        END
-      `);
+        workdays = workdays.map((item: { PDD_FECHA: string }) => item.PDD_FECHA);
 
-      const totalQuery = Database.from("radicado_details as rd").select(
-        Database.raw("COUNT(*) as contador_total")
-      );
-
-      const [result, totalResult] = await Promise.all([query, totalQuery]);
-
-      const responseObj = {
+      const responseObj: Record<string, number> = {
         documentos_vencidos_sin_tramitar: 0,
         documentos_en_fase_inicial_de_tramite: 0,
         documentos_a_tramitar_prontamente: 0,
         documentos_proximos_a_vencerse: 0,
-        total: 0,
+        total: 0
       };
 
-      result.forEach((item) => {
-        responseObj[item.estado_documento] = item.contador_estado;
-      });
+      for (const rad of rads) {
+        const tiempoTranscurrido = await this.calculateElapsedWorkingTime(
+          rad.created_at,
+          rad.INF_UNIDAD,
+          useWorkDays,
+          workdays,
+        );
 
-      responseObj.total = totalResult[0].contador_total;
+        const estado = this.determineRadicadoState(tiempoTranscurrido, rad.INF_TIMEPO_RESPUESTA);
+        responseObj[estado] += 1;
+        responseObj.total++;
+      }
 
       return response.status(200).json({
         data: responseObj,
-        message: { success: "Búsqueda exitosa" },
+        message: { success: "Successful search" },
       });
     } catch (err) {
       console.log(err);
-      return response
-        .status(500)
-        .json({ data: null, message: { error: "Hubo un error" } });
+      return response.status(500).json({ data: null, message: { error: "Hubo un error" } });
+    }
+  }
+
+  private async calculateElapsedWorkingTime(
+    created_at: string,
+    unidad: 'Minutos' | 'Días',
+    useWorkDays: boolean,
+    workdays: any[]
+  ): Promise<number> {
+    const fechaCreacion = new Date(created_at);
+    const diasHabiles = useWorkDays ? workdays : [];
+    let elapsedWorkingTime = 0;
+
+    if (unidad === 'Minutos') {
+      elapsedWorkingTime = (fechaCreacion.getHours() * 60 + fechaCreacion.getMinutes()) / 8;
+    } else {
+      const fechaActual = new Date();
+
+      while (fechaCreacion < fechaActual) {
+        const fechaActualStr = fechaActual.toISOString().split('T')[0];
+
+        if (useWorkDays ? diasHabiles.includes(fechaActualStr) : true) {
+          elapsedWorkingTime += 1;
+        }
+
+        fechaActual.setDate(fechaActual.getDate() - 1);
+      }
+    }
+
+    return elapsedWorkingTime;
+  }
+
+  private determineRadicadoState(elapsedWorkingTime: number, tiempoRespuesta: number): string {
+    if (elapsedWorkingTime > tiempoRespuesta) {
+      return 'documentos_vencidos_sin_tramitar';
+    } else if (elapsedWorkingTime <= tiempoRespuesta * 0.5) {
+      return 'documentos_en_fase_inicial_de_tramite';
+    } else if (elapsedWorkingTime <= tiempoRespuesta * 0.8) {
+      return 'documentos_a_tramitar_prontamente';
+    } else if (elapsedWorkingTime <= tiempoRespuesta * 1.0) {
+      return 'documentos_proximos_a_vencerse';
+    } else {
+      return '';
     }
   }
 

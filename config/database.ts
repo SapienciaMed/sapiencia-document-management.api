@@ -52,6 +52,21 @@ const databaseConfig: DatabaseConfig = {
       healthCheck: false,
       debug: false,
     },
+    citizen_attention: {
+      client: "mysql2",
+      connection: {
+        host: Env.get("MYSQL_HOST"),
+        port: Env.get("MYSQL_PORT"),
+        user: Env.get("MYSQL_USER"),
+        password: Env.get("MYSQL_PASSWORD", ""),
+        database: Env.get("MYSQL_DB_NAME_CITIZEN_ATTENTION"),
+      },
+      migrations: {
+        naturalSort: true,
+      },
+      healthCheck: false,
+      debug: false,
+    },
   },
 };
 
