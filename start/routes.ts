@@ -137,9 +137,7 @@ Route.group(() => {
     "/update/:id",
     "GeneralConfigurationController.updateGeneralConfiguration"
   );
-})
-  .prefix("/api/v1/general-configuration")
-  .middleware("auth");
+}).prefix("/api/v1/general-configuration");
 
 Route.group(() => {
   Route.resource(
