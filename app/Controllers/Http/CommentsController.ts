@@ -12,22 +12,6 @@ export default class CommentsController {
 
   public async store({ request, response }: HttpContextContract) {
     try {
-      // await Database.transaction(async (trx) => {
-      //   try {
-      //     const data = await request.validate(GeneralConfigurationValidator);
-      //     return response.send(
-      //       await GeneralConfigurationProvider.createGeneralConfiguration(
-      //         data,
-      //         trx
-      //       )
-      //     );
-      //   } catch (err) {
-      //     await trx.rollback();
-      //     return response.badRequest(
-      //       new ApiResponse(null, EResponseCodes.FAIL, String(err))
-      //     );
-      //   }
-      // })
       await this.insertRadicadoMovement(request.body().dra_radicado);
       await this.updateRadicado(request.body());
       const comment = new Comment();
