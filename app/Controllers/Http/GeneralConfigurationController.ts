@@ -116,42 +116,40 @@ export default class GeneralConfigurationController {
     await Database.transaction(async (trx) => {
       try {
         const { type } = request.params();
-        const { id } = request.body();
-        console.log(type, id, "generalConfiguration000");
+        const { radicado } = request.body();
+
         const generalConfiguration = await GeneralConfiguration.findOrFail(1);
-        console.log(generalConfiguration.received, "generalConfiguration");
 
         switch (type) {
           case "recibido":
-            if (id <= generalConfiguration.received) {
+            if (radicado <= generalConfiguration.received) {
               throw new Error(
                 "El número de radicado recibido no puede ser igual o menor al actual"
               );
             }
-            generalConfiguration.received = id;
+            generalConfiguration.received = radicado;
             break;
           case "interno":
-            if (id <= generalConfiguration.internal) {
+            if (radicado <= generalConfiguration.internal) {
               throw new Error(
                 "El número de radicado recibido no puede ser igual o menor al actual"
               );
             }
-            generalConfiguration.internal = id;
+            generalConfiguration.internal = radicado;
             break;
           case "externo":
-            if (id <= generalConfiguration.external) {
+            if (radicado <= generalConfiguration.external) {
               throw new Error(
                 "El número de radicado recibido no puede ser igual o menor al actual"
               );
             }
-            generalConfiguration.external = id;
+            generalConfiguration.external = radicado;
             break;
           default:
             throw new Error("Tipo de Radicado incorrecto");
         }
 
         await generalConfiguration.save();
-        console.log(generalConfiguration.received, "generalConfiguration2");
 
         return response
           .status(200)
