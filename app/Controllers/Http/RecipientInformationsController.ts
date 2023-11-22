@@ -1,6 +1,6 @@
 import type { HttpContextContract } from "@ioc:Adonis/Core/HttpContext";
 import RecipientInformation from "App/Models/RecipientInformation";
-
+import Database from "@ioc:Adonis/Lucid/Database";
 export default class RecipientInformationsController {
   public async index({ response }: HttpContextContract) {
     const senderLists = await RecipientInformation.all();
@@ -11,11 +11,13 @@ export default class RecipientInformationsController {
 
   public async show({ request, response }: HttpContextContract) {
     const { id } = request.params();
+
     try {
-      const senderData = await RecipientInformation.findByOrFail(
-        "USR_NUMERO_IDENTIDAD",
-        id
-      );
+
+      const senderData = await Database.connection("authentication")
+      .from("USR_USUARIOS")
+      .where('USR_NUMERO_DOCUMENTO', '=', id)
+      .select('*');
 
       return response.status(200).json({
         data: senderData,
@@ -34,10 +36,11 @@ export default class RecipientInformationsController {
     const id = request.input('id');
 
     try {
-      const query = RecipientInformation.query();
+      const query = Database.connection("authentication")
+      .from("USR_USUARIOS");
 
       if (name) {
-        query.orWhere('USR_NOMBRE', 'LIKE', `%${name}%`);
+        query.orWhere('USR_NOMBRES', 'LIKE', `%${name}%`);
       }
 
       if (last_name) {
@@ -45,7 +48,7 @@ export default class RecipientInformationsController {
       }
 
       if (id) {
-        query.orWhere('USR_NUMERO_IDENTIDAD', 'LIKE', `%${id}%`);
+        query.orWhere('USR_NUMERO_DOCUMENTO', 'LIKE', `%${id}%`);
       }
 
       const subjects = await query.select('*');
