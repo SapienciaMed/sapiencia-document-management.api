@@ -26,17 +26,17 @@ export default class extends BaseSchema {
       .comment("configuracion para el reporte de dias habiles");
 
       table
-      .integer("CGE_DURACION_ALMUERZO", 20)
+      .bigint("CGE_DURACION_ALMUERZO")
       .notNullable()
       .comment("indica la hora de inicio del almuerzo formato 24 horas");
 
       table
-      .integer("CGE_TIEMPO", 20)
+      .bigint("CGE_TIEMPO")
       .notNullable()
       .comment("indica cuanto es el tiempo laboral numero de horas");
 
       table
-      .integer("CGE_HORA_ALMUERZO", 20)
+      .bigint("CGE_HORA_ALMUERZO")
       .notNullable()
       .comment("indica la duracion del almuerso");
 
@@ -66,62 +66,62 @@ export default class extends BaseSchema {
       .comment("booleano con posibles valores True o False.");
 
       table
-      .integer("CGE_ANEXO", 20)
+      .bigint("CGE_ANEXO")
       .notNullable()
       .comment("");
 
       table
-      .integer("CGE_CARTA", 20)
+      .bigint("CGE_CARTA")
       .notNullable()
       .comment("");
 
       table
-      .integer("CGE_EXPEDIENTE", 20)
+      .bigint("CGE_EXPEDIENTE")
       .notNullable()
       .comment("");
 
       table
-      .integer("CGE_EXTERNO", 20)
+      .bigint("CGE_EXTERNO")
       .notNullable()
       .comment("");
 
       table
-      .integer("CGE_INTERNO", 20)
+      .bigint("CGE_INTERNO")
       .notNullable()
       .comment("");
 
       table
-      .integer("CGE_NUMERO_RADICABLE", 20)
+      .bigint("CGE_NUMERO_RADICABLE")
       .notNullable()
       .comment("");
 
       table
-      .integer("CGE_NUMERO_RADICABLE_EXPED", 20)
+      .bigint("CGE_NUMERO_RADICABLE_EXPED")
       .notNullable()
       .comment("");
 
       table
-      .integer("CGE_RECIBIDO", 20)
+      .bigint("CGE_RECIBIDO")
       .notNullable()
       .comment("");
 
       table
-      .integer("CGE_SERIE", 20)
+      .bigint("CGE_SERIE")
       .notNullable()
       .comment("");
 
       table
-      .integer("CGE_REGISTRO_INVENTARIO", 20)
+      .bigint("CGE_REGISTRO_INVENTARIO")
       .notNullable()
       .comment("");
 
       table
-      .integer("CGE_DETALLE_REGINVENTARIO", 20)
+      .bigint("CGE_DETALLE_REGINVENTARIO")
       .notNullable()
       .comment("");
 
       table
-      .integer("CGE_CAUSAL_DEVOLUCION_X_CONDICION", 20)
+      .bigint("CGE_CAUSAL_DEVOLUCION_X_CONDICION")
       .notNullable()
       .comment("");
 
