@@ -1,5 +1,6 @@
 import type { HttpContextContract } from "@ioc:Adonis/Core/HttpContext";
 import moment from "moment";
+import { DateTime } from 'luxon';
 import { Storage } from "@google-cloud/storage";
 import Database from "@ioc:Adonis/Lucid/Database";
 import RadicadoDetail from "App/Models/RadicadoDetail";
@@ -8,6 +9,7 @@ import { EResponseCodes } from "App/Constants/ResponseCodesEnum";
 import { v4 as uuidv4 } from "uuid";
 export default class RadicadoDetailsController {
   constructor() {}
+
   public async index({ response }: HttpContextContract) {
     const radicadoDetailsList = await RadicadoDetail.query().preload(
       "rn_radicado_details_to_related_answer"
@@ -45,6 +47,7 @@ export default class RadicadoDetailsController {
 
   public async searchByRecipient({ request, response }: HttpContextContract) {
     const id = request.input("id-destinatario");
+    const role = request.input("role");
     const days = request.input("dias");
     const start = request.input("desde");
     const end = request.input("hasta");
@@ -80,13 +83,13 @@ export default class RadicadoDetailsController {
         `),
           Database.raw(
             `
-        CASE
-          WHEN ent1.ENT_NUMERO_IDENTIDAD = ? THEN 'Original'
-          WHEN ent1.ENT_NUMERO_IDENTIDAD = ? THEN 'Original'
-          WHEN ent1.ENT_NUMERO_IDENTIDAD = ? THEN 'Original'
-          ELSE 'Copia'
-        END as clase
-      `,
+              CASE
+                WHEN ent1.ENT_NUMERO_IDENTIDAD = ? THEN 'Original'
+                WHEN ent1.ENT_NUMERO_IDENTIDAD = ? THEN 'Original'
+                WHEN ent1.ENT_NUMERO_IDENTIDAD = ? THEN 'Original'
+                ELSE 'Copia'
+              END as clase
+            `,
             [id, id, id]
           )
         )
@@ -112,28 +115,48 @@ export default class RadicadoDetailsController {
         );
 
       if (start && end) {
-        query
-          .whereNotNull("rd.DRA_FECHA_EVACUACION_ENTRADA")
-          .whereNotNull("rd.DRA_FECHA_EVACUACION_SALIDA")
-          .andWhereRaw(
-            `(rd.DRA_FECHA_EVACUACION_ENTRADA >= ? AND rd.DRA_FECHA_EVACUACION_SALIDA <= ?) AND (rd.DRA_ID_DESTINATARIO = ? OR rcd.RCD_ID_DESTINATARIO = ?)`,
-            [start, end, id, id]
-          );
+        if (role !== "ADM_ROL") {
+          query
+            .whereNotNull("rd.DRA_FECHA_EVACUACION_ENTRADA")
+            .whereNotNull("rd.DRA_FECHA_EVACUACION_SALIDA")
+            .andWhereRaw(
+              `(rd.DRA_FECHA_EVACUACION_ENTRADA >= ? AND rd.DRA_FECHA_EVACUACION_SALIDA <= ?) AND (rd.DRA_ID_DESTINATARIO = ? OR rcd.RCD_ID_DESTINATARIO = ?)`,
+              [start, end, id, id]
+            );
+        } else {
+          query
+            .whereNotNull("rd.DRA_FECHA_EVACUACION_ENTRADA")
+            .whereNotNull("rd.DRA_FECHA_EVACUACION_SALIDA")
+            .andWhereRaw(
+              `(rd.DRA_FECHA_EVACUACION_ENTRADA >= ? AND rd.DRA_FECHA_EVACUACION_SALIDA <= ?)`,
+              [start, end]
+            );
+        }
       }
 
       if (days) {
-        query
-          .whereNotNull("rd.DRA_FECHA_EVACUACION_ENTRADA")
-          .andWhereRaw(
-            `DATE(rd.DRA_FECHA_EVACUACION_ENTRADA) >= ? AND (rd.DRA_ID_DESTINATARIO = ? OR rcd.RCD_ID_DESTINATARIO = ?)`,
-            [moment().subtract(days, "days").format("YYYY-MM-DD"), id, id]
-          );
+        if (role !== "ADM_ROL") {
+          query
+            .whereNotNull("rd.DRA_FECHA_EVACUACION_ENTRADA")
+            .andWhereRaw(
+              `DATE(rd.DRA_FECHA_EVACUACION_ENTRADA) >= ? AND (rd.DRA_ID_DESTINATARIO = ? OR rcd.RCD_ID_DESTINATARIO = ?)`,
+              [moment().subtract(days, "days").format("YYYY-MM-DD"), id, id]
+            );
+        } else {
+          query
+            .whereNotNull("rd.DRA_FECHA_EVACUACION_ENTRADA")
+            .andWhereRaw(`DATE(rd.DRA_FECHA_EVACUACION_ENTRADA) >= ?`, [
+              moment().subtract(days, "days").format("YYYY-MM-DD"),
+            ]);
+        }
       }
 
       if (!days && !start) {
-        query
-          .where("rd.DRA_ID_DESTINATARIO", id)
-          .orWhere("rcd.RCD_ID_DESTINATARIO", id);
+        if (role !== "ADM_ROL") {
+          query
+            .where("rd.DRA_ID_DESTINATARIO", id)
+            .orWhere("rcd.RCD_ID_DESTINATARIO", id);
+        }
       }
 
       const results = await query;
@@ -156,6 +179,8 @@ export default class RadicadoDetailsController {
   }: HttpContextContract) {
     try {
       const id = request.input("id-destinatario");
+      let workdays: any[] = []
+      let nonworkingdays: any[] = []
 
       const cgeConfiguracion = await Database.from("CGE_CONFIGURACION_GENERAL")
         .select("CGE_DIAS_HABILES")
@@ -186,12 +211,21 @@ export default class RadicadoDetailsController {
         .orWhere("rcd.RCD_ID_DESTINATARIO", id)
         .select("rd.created_at", "ib.INF_TIMEPO_RESPUESTA", "ib.INF_UNIDAD");
 
-      let workdays = await Database.connection("citizen_attention")
-        .from("PDD_PARAMETRIZACION_DIAS_DETALLE")
-        .where("PDD_CODTDI_DIA", 1)
-        .select("PDD_FECHA");
+        if (useWorkDays) {
+          workdays = await Database.connection("citizen_attention")
+            .from("PDD_PARAMETRIZACION_DIAS_DETALLE")
+            .where("PDD_CODTDI_DIA", 1)
+            .select("PDD_FECHA");
 
-      workdays = workdays.map((item: { PDD_FECHA: string }) => item.PDD_FECHA);
+          workdays = workdays.map((item: { PDD_FECHA: string }) => moment(item.PDD_FECHA).format('yyyy-MM-DD HH:mm:ss.SSS'));
+
+          nonworkingdays = await Database.connection("citizen_attention")
+          .from("PDD_PARAMETRIZACION_DIAS_DETALLE")
+          .where("PDD_CODTDI_DIA", 2)
+          .select("PDD_FECHA");
+
+          nonworkingdays = nonworkingdays.map((item: { PDD_FECHA: string }) => moment(item.PDD_FECHA).format('yyyy-MM-DD HH:mm:ss.SSS'));
+        }
 
       const responseObj: Record<string, number> = {
         documentos_vencidos_sin_tramitar: 0,
@@ -202,12 +236,11 @@ export default class RadicadoDetailsController {
       };
 
       for (const rad of rads) {
-        const tiempoTranscurrido = await this.calculateElapsedWorkingTime(
-          rad.created_at,
-          rad.INF_UNIDAD,
-          useWorkDays,
-          workdays
-        );
+        let tiempoTranscurrido = this.calcularTiempoTranscurrido(moment(rad.created_at).format('yyyy-MM-DD HH:mm:ss.SSS'), workdays, nonworkingdays);
+
+        if (rad.INF_UNIDAD === 'Días') {
+          tiempoTranscurrido = tiempoTranscurrido / 1440;
+        }
 
         const estado = this.determineRadicadoState(
           tiempoTranscurrido,
@@ -215,6 +248,7 @@ export default class RadicadoDetailsController {
         );
         responseObj[estado] += 1;
         responseObj.total++;
+
       }
 
       return response.status(200).json({
@@ -231,6 +265,8 @@ export default class RadicadoDetailsController {
 
   public async getSummaryFileds({ response }: HttpContextContract) {
     try {
+      let workdays: any[] = []
+      let nonworkingdays: any[] = []
       const cgeConfiguracion = await Database.from("CGE_CONFIGURACION_GENERAL")
         .select("CGE_DIAS_HABILES")
         .first();
@@ -248,12 +284,21 @@ export default class RadicadoDetailsController {
         )
         .select("rd.created_at", "ib.INF_TIMEPO_RESPUESTA", "ib.INF_UNIDAD");
 
-      let workdays = await Database.connection("citizen_attention")
+      if (useWorkDays) {
+        workdays = await Database.connection("citizen_attention")
+          .from("PDD_PARAMETRIZACION_DIAS_DETALLE")
+          .where("PDD_CODTDI_DIA", 1)
+          .select("PDD_FECHA");
+
+        workdays = workdays.map((item: { PDD_FECHA: string }) => moment(item.PDD_FECHA).format('yyyy-MM-DD HH:mm:ss.SSS'));
+
+        nonworkingdays = await Database.connection("citizen_attention")
         .from("PDD_PARAMETRIZACION_DIAS_DETALLE")
-        .where("PDD_CODTDI_DIA", 1)
+        .where("PDD_CODTDI_DIA", 2)
         .select("PDD_FECHA");
 
-      workdays = workdays.map((item: { PDD_FECHA: string }) => item.PDD_FECHA);
+        nonworkingdays = nonworkingdays.map((item: { PDD_FECHA: string }) => moment(item.PDD_FECHA).format('yyyy-MM-DD HH:mm:ss.SSS'));
+      }
 
       const responseObj: Record<string, number> = {
         documentos_vencidos_sin_tramitar: 0,
@@ -264,12 +309,11 @@ export default class RadicadoDetailsController {
       };
 
       for (const rad of rads) {
-        const tiempoTranscurrido = await this.calculateElapsedWorkingTime(
-          rad.created_at,
-          rad.INF_UNIDAD,
-          useWorkDays,
-          workdays
-        );
+        let tiempoTranscurrido = this.calcularTiempoTranscurrido(moment(rad.created_at).format('yyyy-MM-DD HH:mm:ss.SSS'), workdays, nonworkingdays);
+
+        if (rad.INF_UNIDAD === 'Días') {
+          tiempoTranscurrido = tiempoTranscurrido / 1440;
+        }
 
         const estado = this.determineRadicadoState(
           tiempoTranscurrido,
@@ -277,6 +321,7 @@ export default class RadicadoDetailsController {
         );
         responseObj[estado] += 1;
         responseObj.total++;
+
       }
 
       return response.status(200).json({
@@ -291,35 +336,62 @@ export default class RadicadoDetailsController {
     }
   }
 
-  private async calculateElapsedWorkingTime(
-    created_at: string,
-    unidad: "Minutos" | "Días",
-    useWorkDays: boolean,
-    workdays: any[]
-  ): Promise<number> {
-    const fechaCreacion = new Date(created_at);
-    const diasHabiles = useWorkDays ? workdays : [];
-    let elapsedWorkingTime = 0;
+  public calcularTiempoTranscurridoTodoLosDias (created_at: string) {
+    const horaInicioLaboral = 8;
+    const horaFinLaboral = 17;
 
-    if (unidad === "Minutos") {
-      elapsedWorkingTime =
-        (fechaCreacion.getHours() * 60 + fechaCreacion.getMinutes()) / 8;
-    } else {
-      const fechaActual = new Date();
+    const fechaCreacion = DateTime.fromFormat(created_at, 'yyyy-MM-DD HH:mm:ss.SSS');
 
-      while (fechaCreacion < fechaActual) {
-        const fechaActualStr = fechaActual.toISOString().split("T")[0];
+    const fechaActual = DateTime.local();
 
-        if (useWorkDays ? diasHabiles.includes(fechaActualStr) : true) {
-          elapsedWorkingTime += 1;
+    let minutosTranscurridos = 0;
+
+    let fechaIterativa = fechaCreacion;
+    while (fechaIterativa < fechaActual) {
+      if (fechaIterativa.weekday >= 1 && fechaIterativa.weekday <= 5) {
+        if (
+          (fechaIterativa.hour > horaInicioLaboral || (fechaIterativa.hour === horaInicioLaboral && fechaIterativa.minute >= 0)) &&
+          (fechaIterativa.hour < horaFinLaboral || (fechaIterativa.hour === horaFinLaboral && fechaIterativa.minute <= 0))
+        ) {
+          minutosTranscurridos += 1;
         }
+      }
 
-        fechaActual.setDate(fechaActual.getDate() - 1);
+      fechaIterativa = fechaIterativa.plus({ minutes: 1 });
+    }
+
+    return minutosTranscurridos;
+  };
+
+  public calcularTiempoTranscurrido (created_at: string,  workdays: string[], nonworkingdays: string[]) {
+    const horaInicioLaboral = 8;
+  const horaFinLaboral = 17;
+
+  const fechaCreacion = DateTime.fromFormat(created_at, 'yyyy-MM-dd HH:mm:ss.SSS');
+  const fechaActual = DateTime.local();
+
+  let minutosTranscurridos = 0;
+
+  let fechaIterativa = fechaCreacion;
+  while (fechaIterativa < fechaActual) {
+    const isDefaultWorkday = fechaIterativa.weekday >= 1 && fechaIterativa.weekday <= 5;
+    const isAdditionalWorkday = workdays.includes(fechaIterativa.toFormat('yyyy-MM-dd'));
+    const isAdditionalNonworkingday = nonworkingdays.includes(fechaIterativa.toFormat('yyyy-MM-dd'));
+
+    if ((isDefaultWorkday || isAdditionalWorkday) && !isAdditionalNonworkingday) {
+      if (
+        (fechaIterativa.hour > horaInicioLaboral || (fechaIterativa.hour === horaInicioLaboral && fechaIterativa.minute >= 0)) &&
+        (fechaIterativa.hour < horaFinLaboral || (fechaIterativa.hour === horaFinLaboral && fechaIterativa.minute <= 0))
+      ) {
+        minutosTranscurridos += 1;
       }
     }
 
-    return elapsedWorkingTime;
+    fechaIterativa = fechaIterativa.plus({ minutes: 1 });
   }
+
+  return minutosTranscurridos;
+  };
 
   private determineRadicadoState(
     elapsedWorkingTime: number,
@@ -362,6 +434,7 @@ export default class RadicadoDetailsController {
           "rn_radicado_remitente_to_entity"
         )
           .preload("rn_radicado_destinatario_to_entity")
+          .preload("rn_radicado_to_asunto")
           .select("*")
           .limit(100);
 
