@@ -57,8 +57,6 @@ export default class RadicadoDetailsController {
     const end = request.input("hasta");
 
     try {
-
-
       const query = Database.from("radicado_details as rd")
         .select(
           "rd.DRA_RADICADO",
@@ -129,7 +127,7 @@ export default class RadicadoDetailsController {
               `(rd.DRA_FECHA_EVACUACION_ENTRADA >= ? AND rd.DRA_FECHA_EVACUACION_SALIDA <= ?) AND (rd.DRA_ID_DESTINATARIO = ? OR rcd.RCD_ID_DESTINATARIO = ?)`,
               [start, end, id, id]
             );
-          } else {
+        } else {
           query
             .whereNotNull("rd.DRA_FECHA_EVACUACION_ENTRADA")
             .whereNotNull("rd.DRA_FECHA_EVACUACION_SALIDA")
@@ -143,24 +141,25 @@ export default class RadicadoDetailsController {
       if (days) {
         if (role !== "ADM_ROL") {
           query
-          .whereNotNull("rd.DRA_FECHA_EVACUACION_ENTRADA")
-          .andWhereRaw(
-            `DATE(rd.DRA_FECHA_EVACUACION_ENTRADA) >= ? AND (rd.DRA_ID_DESTINATARIO = ? OR rcd.RCD_ID_DESTINATARIO = ?)`,
-            [moment().subtract(days, "days").format("YYYY-MM-DD"), id, id]
-          );
+            .whereNotNull("rd.DRA_FECHA_EVACUACION_ENTRADA")
+            .andWhereRaw(
+              `DATE(rd.DRA_FECHA_EVACUACION_ENTRADA) >= ? AND (rd.DRA_ID_DESTINATARIO = ? OR rcd.RCD_ID_DESTINATARIO = ?)`,
+              [moment().subtract(days, "days").format("YYYY-MM-DD"), id, id]
+            );
         } else {
           query
-          .whereNotNull("rd.DRA_FECHA_EVACUACION_ENTRADA")
-          .andWhereRaw(
-            `DATE(rd.DRA_FECHA_EVACUACION_ENTRADA) >= ?`,
-            [moment().subtract(days, "days").format("YYYY-MM-DD")]
-          );
+            .whereNotNull("rd.DRA_FECHA_EVACUACION_ENTRADA")
+            .andWhereRaw(`DATE(rd.DRA_FECHA_EVACUACION_ENTRADA) >= ?`, [
+              moment().subtract(days, "days").format("YYYY-MM-DD"),
+            ]);
         }
       }
 
       if (!days && !start) {
         if (role !== "ADM_ROL") {
-          query.where("rd.DRA_ID_DESTINATARIO", id) .orWhere("rcd.RCD_ID_DESTINATARIO", id);
+          query
+            .where("rd.DRA_ID_DESTINATARIO", id)
+            .orWhere("rcd.RCD_ID_DESTINATARIO", id);
         }
       }
 
@@ -439,6 +438,7 @@ export default class RadicadoDetailsController {
           "rn_radicado_remitente_to_entity"
         )
           .preload("rn_radicado_destinatario_to_entity")
+          .preload("rn_radicado_to_asunto")
           .select("*")
           .limit(100);
 
