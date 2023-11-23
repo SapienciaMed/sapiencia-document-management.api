@@ -7,10 +7,6 @@ import RadicadoDetail from "App/Models/RadicadoDetail";
 import { ApiResponse } from "App/Utils/ApiResponses";
 import { EResponseCodes } from "App/Constants/ResponseCodesEnum";
 import { v4 as uuidv4 } from "uuid";
-// const { differenceInHours, addDays, isWeekend, parseISO, format } = require('date-fns');
-import { format, parseISO, isWeekend, addHours, isBefore, isAfter, addDays, differenceInMinutes, differenceInHours, min, startOfDay, setHours, setMinutes, getHours } from 'date-fns';
-import { utcToZonedTime } from 'date-fns-tz';
-
 export default class RadicadoDetailsController {
   constructor() {}
 
