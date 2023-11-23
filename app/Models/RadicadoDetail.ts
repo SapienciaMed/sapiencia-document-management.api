@@ -9,6 +9,7 @@ import {
 import { DateTime } from "luxon";
 import RelatedAnswer from "./RelatedAnswer";
 import Entity from "./Entity";
+import BasicDocumentInformation from "./BasicDocumentInformation";
 
 export default class RadicadoDetail extends BaseModel {
   public static table = "radicado_details";
@@ -105,4 +106,10 @@ export default class RadicadoDetail extends BaseModel {
     foreignKey: "ent_numero_identidad",
   })
   public rn_radicado_destinatario_to_entity: HasOne<typeof Entity>;
+
+  @hasOne(() => BasicDocumentInformation, {
+    localKey: "dra_codigo_asunto",
+    foreignKey: "inf_codigo_asunto",
+  })
+  public rn_radicado_to_asunto: HasOne<typeof BasicDocumentInformation>;
 }
