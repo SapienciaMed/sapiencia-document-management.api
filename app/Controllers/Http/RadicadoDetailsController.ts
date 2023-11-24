@@ -664,43 +664,89 @@ export default class RadicadoDetailsController {
         "DRA_ESTADO",
       ]);
 
-      const currentCGERecibido = await Database.from(
-        "CGE_CONFIGURACION_GENERAL"
-      )
-        .where("CGE_CODIGO", 1)
-        .select("CGE_RECIBIDO")
-        .first();
-
-      if (currentCGERecibido) {
-        await Database.from("CGE_CONFIGURACION_GENERAL")
+      if (data.DRA_TIPO_DOCUMENTO_RADICADO == 'Recibido') {
+        const currentCGERecibido = await Database.from(
+          "CGE_CONFIGURACION_GENERAL"
+        )
           .where("CGE_CODIGO", 1)
-          .increment("CGE_RECIBIDO", 1);
+          .select("CGE_RECIBIDO")
+          .first();
+
+        if (currentCGERecibido) {
+          await Database.from("CGE_CONFIGURACION_GENERAL")
+            .where("CGE_CODIGO", 1)
+            .increment("CGE_RECIBIDO", 1);
+        }
+
+        await Database.table("radicado_details").insert({
+          DRA_RADICADO: currentCGERecibido.CGE_RECIBIDO + 1,
+          ...data,
+        });
+
+        const copiesData = request.input("copies", []).map((copy) => ({
+          ...copy,
+          RCD_RADICADO: currentCGERecibido.CGE_RECIBIDO + 1,
+        }));
+
+        if (copiesData.length > 0) {
+          await Database.table("RCD_RADICADO_COPIAS_DESTINATARIO").insert(
+            copiesData
+          );
+        }
+
+        return response.status(201).json({
+          message: "Radicado guardado exitosamente",
+          data: {
+            radicado: data,
+            copias: copiesData,
+            num_radicado: currentCGERecibido.CGE_RECIBIDO + 1,
+          },
+        });
+
       }
 
-      await Database.table("radicado_details").insert({
-        DRA_RADICADO: currentCGERecibido.CGE_RECIBIDO + 1,
-        ...data,
-      });
+      if (data.DRA_TIPO_DOCUMENTO_RADICADO == 'Externo') {
+        const currentCGEExterno = await Database.from(
+          "CGE_CONFIGURACION_GENERAL"
+        )
+          .where("CGE_CODIGO", 1)
+          .select("CGE_EXTERNO")
+          .first();
 
-      const copiesData = request.input("copies", []).map((copy) => ({
-        ...copy,
-        RCD_RADICADO: currentCGERecibido.CGE_RECIBIDO + 1,
-      }));
+        if (currentCGEExterno) {
+          await Database.from("CGE_CONFIGURACION_GENERAL")
+            .where("CGE_CODIGO", 1)
+            .increment("CGE_EXTERNO", 1);
+        }
 
-      if (copiesData.length > 0) {
-        await Database.table("RCD_RADICADO_COPIAS_DESTINATARIO").insert(
-          copiesData
-        );
+        await Database.table("radicado_details").insert({
+          DRA_RADICADO: currentCGEExterno.CGE_EXTERNO + 1,
+          ...data,
+        });
+
+        const copiesData = request.input("copies", []).map((copy) => ({
+          ...copy,
+          RCD_RADICADO: currentCGEExterno.CGE_EXTERNO + 1,
+        }));
+
+        if (copiesData.length > 0) {
+          await Database.table("RCD_RADICADO_COPIAS_DESTINATARIO").insert(
+            copiesData
+          );
+        }
+
+        return response.status(201).json({
+          message: "Radicado guardado exitosamente",
+          data: {
+            radicado: data,
+            copias: copiesData,
+            num_radicado: currentCGEExterno.CGE_RECIBIDO + 1,
+          },
+        });
       }
 
-      return response.status(201).json({
-        message: "Radicado guardado exitosamente",
-        data: {
-          radicado: data,
-          copias: copiesData,
-          num_radicado: currentCGERecibido.CGE_RECIBIDO + 1,
-        },
-      });
+
+
     } catch (error) {
       console.log(error);
       return response
