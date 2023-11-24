@@ -89,6 +89,16 @@ export default class RadicadoDetail extends BaseModel {
   @column({ columnName: "DRA_USUARIO" })
   public dra_usuario: string;
 
+  @column.date({
+    columnName: "created_at",
+    serialize: (value) => value.toFormat("dd/MM/yyyy HH:mm:ss"),
+  })
+  public created_at: DateTime;
+
+  //dra_estado no pertenece a la base de datos es computada en findById
+  @column()
+  public dra_estado: any;
+
   @hasMany(() => RelatedAnswer, {
     foreignKey: "rrr_id_radicado",
     localKey: "dra_radicado",
