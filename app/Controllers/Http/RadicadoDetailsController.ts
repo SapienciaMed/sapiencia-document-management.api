@@ -1,5 +1,5 @@
 import type { HttpContextContract } from "@ioc:Adonis/Core/HttpContext";
-import moment from "moment";
+import moment from "moment-timezone";
 import { DateTime } from "luxon";
 import { Storage } from "@google-cloud/storage";
 import Database from "@ioc:Adonis/Lucid/Database";
@@ -7,6 +7,8 @@ import RadicadoDetail from "App/Models/RadicadoDetail";
 import { ApiResponse } from "App/Utils/ApiResponses";
 import { EResponseCodes } from "App/Constants/ResponseCodesEnum";
 import { v4 as uuidv4 } from "uuid";
+
+const zonaHorariaColombia = 'America/Bogota';
 export default class RadicadoDetailsController {
   constructor() {}
 
@@ -821,8 +823,8 @@ export default class RadicadoDetailsController {
         "DRA_ESTADO",
       ]);
 
-      const created_at = moment().format('yyyy-MM-DD HH:mm:ss.SSS')
-      const updated_at = moment().format('yyyy-MM-DD HH:mm:ss.SSS')
+      const created_at = moment().tz(zonaHorariaColombia).format('YYYY-MM-DD HH:mm:ss.SSS');
+      const updated_at = moment().tz(zonaHorariaColombia).format('YYYY-MM-DD HH:mm:ss.SSS');
 
       if (data.DRA_TIPO_DOCUMENTO_RADICADO == 'Recibido') {
         const currentCGERecibido = await Database.from(
