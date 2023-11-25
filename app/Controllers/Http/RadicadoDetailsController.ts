@@ -664,6 +664,9 @@ export default class RadicadoDetailsController {
         "DRA_ESTADO",
       ]);
 
+      const created_at = moment().format('yyyy-MM-DD HH:mm:ss.SSS')
+      const updated_at = moment().format('yyyy-MM-DD HH:mm:ss.SSS')
+
       if (data.DRA_TIPO_DOCUMENTO_RADICADO == 'Recibido') {
         const currentCGERecibido = await Database.from(
           "CGE_CONFIGURACION_GENERAL"
@@ -680,7 +683,7 @@ export default class RadicadoDetailsController {
 
         await Database.table("radicado_details").insert({
           DRA_RADICADO: currentCGERecibido.CGE_RECIBIDO + 1,
-          ...data,
+          ...{ ...data, created_at, updated_at },
         });
 
         const copiesData = request.input("copies", []).map((copy) => ({
@@ -721,7 +724,7 @@ export default class RadicadoDetailsController {
 
         await Database.table("radicado_details").insert({
           DRA_RADICADO: currentCGEExterno.CGE_EXTERNO + 1,
-          ...data,
+          ...{ ...data, created_at, updated_at },
         });
 
         const copiesData = request.input("copies", []).map((copy) => ({
@@ -740,7 +743,7 @@ export default class RadicadoDetailsController {
           data: {
             radicado: data,
             copias: copiesData,
-            num_radicado: currentCGEExterno.CGE_RECIBIDO + 1,
+            num_radicado: currentCGEExterno.CGE_EXTERNO + 1,
           },
         });
       }
