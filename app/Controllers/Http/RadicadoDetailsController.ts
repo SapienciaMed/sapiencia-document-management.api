@@ -1,6 +1,6 @@
 import type { HttpContextContract } from "@ioc:Adonis/Core/HttpContext";
 import moment from "moment";
-import { DateTime } from 'luxon';
+import { DateTime } from "luxon";
 import { Storage } from "@google-cloud/storage";
 import Database from "@ioc:Adonis/Lucid/Database";
 import RadicadoDetail from "App/Models/RadicadoDetail";
@@ -179,8 +179,8 @@ export default class RadicadoDetailsController {
   }: HttpContextContract) {
     try {
       const id = request.input("id-destinatario");
-      let workdays: any[] = []
-      let nonworkingdays: any[] = []
+      let workdays: any[] = [];
+      let nonworkingdays: any[] = [];
 
       const cgeConfiguracion = await Database.from("CGE_CONFIGURACION_GENERAL")
         .select("CGE_DIAS_HABILES")
@@ -211,21 +211,25 @@ export default class RadicadoDetailsController {
         .orWhere("rcd.RCD_ID_DESTINATARIO", id)
         .select("rd.created_at", "ib.INF_TIMEPO_RESPUESTA", "ib.INF_UNIDAD");
 
-        if (useWorkDays) {
-          workdays = await Database.connection("citizen_attention")
-            .from("PDD_PARAMETRIZACION_DIAS_DETALLE")
-            .where("PDD_CODTDI_DIA", 1)
-            .select("PDD_FECHA");
+      if (useWorkDays) {
+        workdays = await Database.connection("citizen_attention")
+          .from("PDD_PARAMETRIZACION_DIAS_DETALLE")
+          .where("PDD_CODTDI_DIA", 1)
+          .select("PDD_FECHA");
 
-          workdays = workdays.map((item: { PDD_FECHA: string }) => moment(item.PDD_FECHA).format('yyyy-MM-DD HH:mm:ss.SSS'));
+        workdays = workdays.map((item: { PDD_FECHA: string }) =>
+          moment(item.PDD_FECHA).format("yyyy-MM-DD HH:mm:ss.SSS")
+        );
 
-          nonworkingdays = await Database.connection("citizen_attention")
+        nonworkingdays = await Database.connection("citizen_attention")
           .from("PDD_PARAMETRIZACION_DIAS_DETALLE")
           .where("PDD_CODTDI_DIA", 2)
           .select("PDD_FECHA");
 
-          nonworkingdays = nonworkingdays.map((item: { PDD_FECHA: string }) => moment(item.PDD_FECHA).format('yyyy-MM-DD HH:mm:ss.SSS'));
-        }
+        nonworkingdays = nonworkingdays.map((item: { PDD_FECHA: string }) =>
+          moment(item.PDD_FECHA).format("yyyy-MM-DD HH:mm:ss.SSS")
+        );
+      }
 
       const responseObj: Record<string, number> = {
         documentos_vencidos_sin_tramitar: 0,
@@ -236,9 +240,13 @@ export default class RadicadoDetailsController {
       };
 
       for (const rad of rads) {
-        let tiempoTranscurrido = this.calcularTiempoTranscurrido(moment(rad.created_at).format('yyyy-MM-DD HH:mm:ss.SSS'), workdays, nonworkingdays);
+        let tiempoTranscurrido = this.calcularTiempoTranscurrido(
+          moment(rad.created_at).format("yyyy-MM-DD HH:mm:ss.SSS"),
+          workdays,
+          nonworkingdays
+        );
 
-        if (rad.INF_UNIDAD === 'Días') {
+        if (rad.INF_UNIDAD === "Días") {
           tiempoTranscurrido = tiempoTranscurrido / 1440;
         }
 
@@ -248,7 +256,6 @@ export default class RadicadoDetailsController {
         );
         responseObj[estado] += 1;
         responseObj.total++;
-
       }
 
       return response.status(200).json({
@@ -265,8 +272,8 @@ export default class RadicadoDetailsController {
 
   public async getSummaryFileds({ response }: HttpContextContract) {
     try {
-      let workdays: any[] = []
-      let nonworkingdays: any[] = []
+      let workdays: any[] = [];
+      let nonworkingdays: any[] = [];
       const cgeConfiguracion = await Database.from("CGE_CONFIGURACION_GENERAL")
         .select("CGE_DIAS_HABILES")
         .first();
@@ -290,14 +297,18 @@ export default class RadicadoDetailsController {
           .where("PDD_CODTDI_DIA", 1)
           .select("PDD_FECHA");
 
-        workdays = workdays.map((item: { PDD_FECHA: string }) => moment(item.PDD_FECHA).format('yyyy-MM-DD HH:mm:ss.SSS'));
+        workdays = workdays.map((item: { PDD_FECHA: string }) =>
+          moment(item.PDD_FECHA).format("yyyy-MM-DD HH:mm:ss.SSS")
+        );
 
         nonworkingdays = await Database.connection("citizen_attention")
-        .from("PDD_PARAMETRIZACION_DIAS_DETALLE")
-        .where("PDD_CODTDI_DIA", 2)
-        .select("PDD_FECHA");
+          .from("PDD_PARAMETRIZACION_DIAS_DETALLE")
+          .where("PDD_CODTDI_DIA", 2)
+          .select("PDD_FECHA");
 
-        nonworkingdays = nonworkingdays.map((item: { PDD_FECHA: string }) => moment(item.PDD_FECHA).format('yyyy-MM-DD HH:mm:ss.SSS'));
+        nonworkingdays = nonworkingdays.map((item: { PDD_FECHA: string }) =>
+          moment(item.PDD_FECHA).format("yyyy-MM-DD HH:mm:ss.SSS")
+        );
       }
 
       const responseObj: Record<string, number> = {
@@ -309,9 +320,13 @@ export default class RadicadoDetailsController {
       };
 
       for (const rad of rads) {
-        let tiempoTranscurrido = this.calcularTiempoTranscurrido(moment(rad.created_at).format('yyyy-MM-DD HH:mm:ss.SSS'), workdays, nonworkingdays);
+        let tiempoTranscurrido = this.calcularTiempoTranscurrido(
+          moment(rad.created_at).format("yyyy-MM-DD HH:mm:ss.SSS"),
+          workdays,
+          nonworkingdays
+        );
 
-        if (rad.INF_UNIDAD === 'Días') {
+        if (rad.INF_UNIDAD === "Días") {
           tiempoTranscurrido = tiempoTranscurrido / 1440;
         }
 
@@ -321,7 +336,6 @@ export default class RadicadoDetailsController {
         );
         responseObj[estado] += 1;
         responseObj.total++;
-
       }
 
       return response.status(200).json({
@@ -336,11 +350,14 @@ export default class RadicadoDetailsController {
     }
   }
 
-  public calcularTiempoTranscurridoTodoLosDias (created_at: string) {
+  public calcularTiempoTranscurridoTodoLosDias(created_at: string) {
     const horaInicioLaboral = 8;
     const horaFinLaboral = 17;
 
-    const fechaCreacion = DateTime.fromFormat(created_at, 'yyyy-MM-DD HH:mm:ss.SSS');
+    const fechaCreacion = DateTime.fromFormat(
+      created_at,
+      "yyyy-MM-DD HH:mm:ss.SSS"
+    );
 
     const fechaActual = DateTime.local();
 
@@ -350,8 +367,12 @@ export default class RadicadoDetailsController {
     while (fechaIterativa < fechaActual) {
       if (fechaIterativa.weekday >= 1 && fechaIterativa.weekday <= 5) {
         if (
-          (fechaIterativa.hour > horaInicioLaboral || (fechaIterativa.hour === horaInicioLaboral && fechaIterativa.minute >= 0)) &&
-          (fechaIterativa.hour < horaFinLaboral || (fechaIterativa.hour === horaFinLaboral && fechaIterativa.minute <= 0))
+          (fechaIterativa.hour > horaInicioLaboral ||
+            (fechaIterativa.hour === horaInicioLaboral &&
+              fechaIterativa.minute >= 0)) &&
+          (fechaIterativa.hour < horaFinLaboral ||
+            (fechaIterativa.hour === horaFinLaboral &&
+              fechaIterativa.minute <= 0))
         ) {
           minutosTranscurridos += 1;
         }
@@ -361,37 +382,56 @@ export default class RadicadoDetailsController {
     }
 
     return minutosTranscurridos;
-  };
-
-  public calcularTiempoTranscurrido (created_at: string,  workdays: string[], nonworkingdays: string[]) {
-    const horaInicioLaboral = 8;
-  const horaFinLaboral = 17;
-
-  const fechaCreacion = DateTime.fromFormat(created_at, 'yyyy-MM-dd HH:mm:ss.SSS');
-  const fechaActual = DateTime.local();
-
-  let minutosTranscurridos = 0;
-
-  let fechaIterativa = fechaCreacion;
-  while (fechaIterativa < fechaActual) {
-    const isDefaultWorkday = fechaIterativa.weekday >= 1 && fechaIterativa.weekday <= 5;
-    const isAdditionalWorkday = workdays.includes(fechaIterativa.toFormat('yyyy-MM-dd'));
-    const isAdditionalNonworkingday = nonworkingdays.includes(fechaIterativa.toFormat('yyyy-MM-dd'));
-
-    if ((isDefaultWorkday || isAdditionalWorkday) && !isAdditionalNonworkingday) {
-      if (
-        (fechaIterativa.hour > horaInicioLaboral || (fechaIterativa.hour === horaInicioLaboral && fechaIterativa.minute >= 0)) &&
-        (fechaIterativa.hour < horaFinLaboral || (fechaIterativa.hour === horaFinLaboral && fechaIterativa.minute <= 0))
-      ) {
-        minutosTranscurridos += 1;
-      }
-    }
-
-    fechaIterativa = fechaIterativa.plus({ minutes: 1 });
   }
 
-  return minutosTranscurridos;
-  };
+  public calcularTiempoTranscurrido(
+    created_at: string,
+    workdays: string[],
+    nonworkingdays: string[]
+  ) {
+    const horaInicioLaboral = 8;
+    const horaFinLaboral = 17;
+
+    const fechaCreacion = DateTime.fromFormat(
+      created_at,
+      "yyyy-MM-dd HH:mm:ss.SSS"
+    );
+    const fechaActual = DateTime.local();
+
+    let minutosTranscurridos = 0;
+
+    let fechaIterativa = fechaCreacion;
+    while (fechaIterativa < fechaActual) {
+      const isDefaultWorkday =
+        fechaIterativa.weekday >= 1 && fechaIterativa.weekday <= 5;
+      const isAdditionalWorkday = workdays.includes(
+        fechaIterativa.toFormat("yyyy-MM-dd")
+      );
+      const isAdditionalNonworkingday = nonworkingdays.includes(
+        fechaIterativa.toFormat("yyyy-MM-dd")
+      );
+
+      if (
+        (isDefaultWorkday || isAdditionalWorkday) &&
+        !isAdditionalNonworkingday
+      ) {
+        if (
+          (fechaIterativa.hour > horaInicioLaboral ||
+            (fechaIterativa.hour === horaInicioLaboral &&
+              fechaIterativa.minute >= 0)) &&
+          (fechaIterativa.hour < horaFinLaboral ||
+            (fechaIterativa.hour === horaFinLaboral &&
+              fechaIterativa.minute <= 0))
+        ) {
+          minutosTranscurridos += 1;
+        }
+      }
+
+      fechaIterativa = fechaIterativa.plus({ minutes: 1 });
+    }
+
+    return minutosTranscurridos;
+  }
 
   private determineRadicadoState(
     elapsedWorkingTime: number,
@@ -409,6 +449,123 @@ export default class RadicadoDetailsController {
       return "";
     }
   }
+
+  // public async findById({ request, response }: HttpContextContract) {
+  //   const { numberDocument, role } = request.qs();
+
+  //   const { id } = request.params();
+  //   try {
+  //     if (numberDocument !== process.env.CURRENT_USER_DOCUMENT) {
+  //       const RadicadoById = RadicadoDetail.query();
+  //       let workdays: any[] = [];
+  //       let nonworkingdays: any[] = [];
+  //       const cgeConfiguracion = await Database.from(
+  //         "CGE_CONFIGURACION_GENERAL"
+  //       )
+  //         .select("CGE_DIAS_HABILES")
+  //         .first();
+
+  //       const useWorkDays =
+  //         cgeConfiguracion && cgeConfiguracion.CGE_DIAS_HABILES !== null
+  //           ? cgeConfiguracion.CGE_DIAS_HABILES
+  //           : false;
+
+  //       if (useWorkDays) {
+  //         workdays = await Database.connection("citizen_attention")
+  //           .from("PDD_PARAMETRIZACION_DIAS_DETALLE")
+  //           .where("PDD_CODTDI_DIA", 1)
+  //           .select("PDD_FECHA");
+
+  //         workdays = workdays.map((item: { PDD_FECHA: string }) =>
+  //           moment(item.PDD_FECHA).format("yyyy-MM-DD HH:mm:ss.SSS")
+  //         );
+
+  //         nonworkingdays = await Database.connection("citizen_attention")
+  //           .from("PDD_PARAMETRIZACION_DIAS_DETALLE")
+  //           .where("PDD_CODTDI_DIA", 2)
+  //           .select("PDD_FECHA");
+
+  //         nonworkingdays = nonworkingdays.map((item: { PDD_FECHA: string }) =>
+  //           moment(item.PDD_FECHA).format("yyyy-MM-DD HH:mm:ss.SSS")
+  //         );
+  //       }
+
+  //       const responseObj: Record<string, number> = {
+  //         documentos_vencidos_sin_tramitar: 0, //rojo
+  //         documentos_en_fase_inicial_de_tramite: 0, //verde
+  //         documentos_a_tramitar_prontamente: 0, //amarillo
+  //         documentos_proximos_a_vencerse: 0, //naranja
+  //         total: 0,
+  //       };
+
+  //       // if (id) {
+  //       //   RadicadoById.orWhere("DRA_RADICADO", "like", `%${id}%`);
+  //       // }
+
+  //       // if (role !== "ADM_ROL") {
+  //       //   RadicadoById.where(
+  //       //     "DRA_ID_DESTINATARIO",
+  //       //     "=",
+  //       //     `${process.env.CURRENT_USER_DOCUMENT}`
+  //       //   );
+  //       // }
+
+  //       const data = await RadicadoById.preload(
+  //         "rn_radicado_remitente_to_entity"
+  //       )
+  //         .preload("rn_radicado_destinatario_to_entity")
+  //         .preload("rn_radicado_to_asunto")
+  //         .select("*")
+  //         .limit(100);
+
+  //       for (const rad of data) {
+  //         let tiempoTranscurrido = this.calcularTiempoTranscurrido(
+  //           moment(rad.created_at).format("yyyy-MM-DD HH:mm:ss.SSS"),
+  //           workdays,
+  //           nonworkingdays
+  //         );
+
+  //         if (rad.rn_radicado_to_asunto.inf_unidad === "Días") {
+  //           tiempoTranscurrido = tiempoTranscurrido / 1440;
+  //         }
+
+  //         const estado = this.determineRadicadoState(
+  //           tiempoTranscurrido,
+  //           rad.rn_radicado_to_asunto.inf_timepo_respuesta as any
+  //         );
+
+  //         rad.dra_estado = estado;
+
+  //         console.log("estado", estado);
+  //         //responseObj[estado] += 1;
+  //         // responseObj.total++;
+  //       }
+  //       //console.log(responseObj, "responseObj");
+  //       if (data.length == 0) {
+  //         return response
+  //           .status(404)
+  //           .send(
+  //             new ApiResponse(
+  //               [],
+  //               EResponseCodes.NOT_FOUND,
+  //               "No hay registros para mostrar"
+  //             )
+  //           );
+  //       }
+
+  //       return response
+  //         .status(200)
+  //         .send(new ApiResponse(data, EResponseCodes.OK, "Datos Encontrados"));
+  //     } else {
+  //       console.error("Intenta acceder de manera incorrecta");
+  //       throw new Error("Intenta acceder de manera incorrecta");
+  //     }
+  //   } catch (error) {
+  //     return response
+  //       .status(400)
+  //       .send(new ApiResponse([], EResponseCodes.FAIL, error.message));
+  //   }
+  // }
 
   public async findById({ request, response }: HttpContextContract) {
     const { numberDocument, role } = request.qs();

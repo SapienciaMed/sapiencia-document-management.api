@@ -137,6 +137,7 @@ export default class RelatedAnswersController {
         "rn_radicado_remitente_to_entity"
       )
         .preload("rn_radicado_destinatario_to_entity")
+        .preload("rn_radicado_to_asunto")
         .select("*");
 
       if (data.length == 0) {
