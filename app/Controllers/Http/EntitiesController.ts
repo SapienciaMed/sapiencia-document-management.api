@@ -1,6 +1,6 @@
 import type { HttpContextContract } from "@ioc:Adonis/Core/HttpContext";
 import Entity from "App/Models/Entity";
-
+import Database from "@ioc:Adonis/Lucid/Database";
 export default class EntitiesController {
   public async index({ response }: HttpContextContract) {
     const senderLists = await Entity.all();
@@ -90,27 +90,19 @@ export default class EntitiesController {
     const ent_nombres = request.input("ent_nombres");
 
     try {
-      const query = Entity.query();
+      const query = Database.connection("authentication")
+      .from("USR_USUARIOS");
 
-      if (ent_tipo_documento) {
-        query.andWhere("ENT_TIPO_DOCUMENTO", "LIKE", `%${ent_tipo_documento}%`);
+      if (ent_nombres) {
+        query.andWhereRaw(`CONCAT(USR_NOMBRES, " ", USR_APELLIDOS) LIKE ?`, [`%${ent_nombres}%`]);
       }
 
       if (ent_numero_identidad) {
-        query.andWhere(
-          "ENT_NUMERO_IDENTIDAD",
-          "LIKE",
-          `%${ent_numero_identidad}%`
-        );
+        query.orWhere('USR_NUMERO_DOCUMENTO', 'LIKE', `%${ent_numero_identidad}%`);
       }
 
-      if (ent_nombres) {
-        if (ent_tipo_documento == "NIT") {
-          query.andWhere('ENT_RAZON_SOCIAL', "LIKE", `%${ent_nombres}%`);
-        } else {
-          // query.andWhere('ENT_NOMBRES', "LIKE", `%${ent_nombres}%`);
-          query.andWhereRaw(`CONCAT(ENT_NOMBRES, " ", ENT_APELLIDOS) LIKE ?`, [`%${ent_nombres}%`]);
-        }
+      if (ent_tipo_documento) {
+        query.orWhere('USR_TIPO_DOCUMENTO', 'LIKE', `%${ent_tipo_documento}%`);
       }
 
       const data = await query.select("*");
