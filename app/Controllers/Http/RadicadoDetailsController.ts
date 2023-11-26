@@ -821,7 +821,7 @@ export default class RadicadoDetailsController {
         "DRA_ESTADO",
       ]);
 
-      if (data.DRA_TIPO_DOCUMENTO_RADICADO == 'Recibido') {
+      if (data.DRA_TIPO_DOCUMENTO_RADICADO == "Recibido") {
         const currentCGERecibido = await Database.from(
           "CGE_CONFIGURACION_GENERAL"
         )
@@ -859,10 +859,9 @@ export default class RadicadoDetailsController {
             num_radicado: currentCGERecibido.CGE_RECIBIDO + 1,
           },
         });
-
       }
 
-      if (data.DRA_TIPO_DOCUMENTO_RADICADO == 'Externo') {
+      if (data.DRA_TIPO_DOCUMENTO_RADICADO == "Externo") {
         const currentCGEExterno = await Database.from(
           "CGE_CONFIGURACION_GENERAL"
         )
@@ -901,9 +900,6 @@ export default class RadicadoDetailsController {
           },
         });
       }
-
-
-
     } catch (error) {
       console.log(error);
       return response
@@ -1056,6 +1052,68 @@ export default class RadicadoDetailsController {
         )
           .preload("rn_radicado_destinatario_to_entity")
           .where("dra_estado_radicado", "Pendiente")
+          .select("*")
+          .limit(100);
+
+        if (data.length == 0) {
+          return response
+            .status(404)
+            .send(
+              new ApiResponse(
+                [],
+                EResponseCodes.NOT_FOUND,
+                "No hay registros para mostrar"
+              )
+            );
+        }
+
+        return response
+          .status(200)
+          .send(new ApiResponse(data, EResponseCodes.OK, "Datos Encontrados"));
+      } else {
+        console.error("Intenta acceder de manera incorrecta");
+        throw new Error("Intenta acceder de manera incorrecta");
+      }
+    } catch (error) {
+      return response
+        .status(400)
+        .send(new ApiResponse([], EResponseCodes.FAIL, error.message));
+    }
+  }
+
+  /**
+   * Buscar Radicado y radicador
+   * @param param0
+   * @returns
+   */
+  public async findByIdAndRadicator({
+    request,
+    response,
+  }: HttpContextContract) {
+    const { numberDocument, role } = request.qs();
+
+    const { id } = request.params();
+    try {
+      if (numberDocument == process.env.CURRENT_USER_DOCUMENT) {
+        const RadicadoById = RadicadoDetail.query();
+
+        if (id) {
+          RadicadoById.orWhere("DRA_RADICADO", "like", `%${id}%`);
+        }
+
+        if (role !== "ADM_ROL") {
+          RadicadoById.where(
+            "dra_radicado_por",
+            "=",
+            `${process.env.CURRENT_USER_DOCUMENT}`
+          );
+        }
+
+        const data = await RadicadoById.preload(
+          "rn_radicado_remitente_to_entity"
+        )
+          .preload("rn_radicado_destinatario_to_entity")
+          .preload("rn_radicado_to_asunto")
           .select("*")
           .limit(100);
 
