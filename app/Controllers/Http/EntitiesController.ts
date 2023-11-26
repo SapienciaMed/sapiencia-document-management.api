@@ -134,10 +134,6 @@ export default class EntitiesController {
           query.orWhere('USR_NUMERO_DOCUMENTO', 'LIKE', `%${ent_numero_identidad}%`);
         }
 
-        if (ent_tipo_documento) {
-          query.orWhere('USR_TIPO_DOCUMENTO', 'LIKE', `%${ent_tipo_documento}%`);
-        }
-
         const data = await query.select("*");
 
         return response.status(200).json({
