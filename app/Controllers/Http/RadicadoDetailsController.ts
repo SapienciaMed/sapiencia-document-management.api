@@ -825,6 +825,7 @@ export default class RadicadoDetailsController {
 
       const created_at = moment().tz(zonaHorariaColombia).format('YYYY-MM-DD HH:mm:ss.SSS');
       const updated_at = moment().tz(zonaHorariaColombia).format('YYYY-MM-DD HH:mm:ss.SSS');
+      const DRA_ESTADO_RADICADO = 'Pendiente'
 
       if (data.DRA_TIPO_DOCUMENTO_RADICADO == 'Recibido') {
         const currentCGERecibido = await Database.from(
@@ -842,7 +843,7 @@ export default class RadicadoDetailsController {
 
         await Database.table("radicado_details").insert({
           DRA_RADICADO: currentCGERecibido.CGE_RECIBIDO + 1,
-          ...{ ...data, created_at, updated_at },
+          ...{ ...data, created_at, updated_at, DRA_ESTADO_RADICADO },
         });
 
         const copiesData = request.input("copies", []).map((copy) => ({
@@ -883,7 +884,7 @@ export default class RadicadoDetailsController {
 
         await Database.table("radicado_details").insert({
           DRA_RADICADO: currentCGEExterno.CGE_EXTERNO + 1,
-          ...{ ...data, created_at, updated_at },
+          ...{ ...data, created_at, updated_at, DRA_ESTADO_RADICADO },
         });
 
         const copiesData = request.input("copies", []).map((copy) => ({
