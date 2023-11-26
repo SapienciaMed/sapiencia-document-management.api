@@ -90,27 +90,61 @@ export default class EntitiesController {
     const ent_nombres = request.input("ent_nombres");
 
     try {
-      const query = Database.connection("authentication")
-      .from("USR_USUARIOS");
 
-      if (ent_nombres) {
-        query.andWhereRaw(`CONCAT(USR_NOMBRES, " ", USR_APELLIDOS) LIKE ?`, [`%${ent_nombres}%`]);
+      if (ent_tipo_documento == 'Entidad') {
+        const query = Database.from('ENT_ENTIDAD');
+
+        if (ent_numero_identidad) {
+          query.andWhere(
+            "ENT_NUMERO_IDENTIDAD",
+            "LIKE",
+            `%${ent_numero_identidad}%`
+          );
+        }
+
+        if (ent_nombres) {
+          query.andWhere('ENT_RAZON_SOCIAL', "LIKE", `%${ent_nombres}%`);
+          query.andWhereRaw(`CONCAT(ENT_NOMBRES, " ", ENT_APELLIDOS) LIKE ?`, [`%${ent_nombres}%`]);
+        }
+
+        const data = await query.select(
+          Database.raw(`
+            CASE
+              WHEN ENT_TIPO_DOCUMENTO = 'NIT' THEN ENT_RAZON_SOCIAL
+              ELSE CONCAT(ENT_NOMBRES, " ", ENT_APELLIDOS)
+            END AS USR_NOMBRES
+          `),
+          "ENT_NUMERO_IDENTIDAD as USR_NUMERO_DOCUMENTO",
+          "ENT_EMAIL as USR_CORREO",
+        );
+
+        return response.status(200).json({
+          data,
+          message: { success: "Peticion terminada exitosamente" },
+        });
+      } else {
+        const query = Database.connection("authentication")
+        .from("USR_USUARIOS");
+
+        if (ent_nombres) {
+          query.andWhereRaw(`CONCAT(USR_NOMBRES, " ", USR_APELLIDOS) LIKE ?`, [`%${ent_nombres}%`]);
+        }
+
+        if (ent_numero_identidad) {
+          query.orWhere('USR_NUMERO_DOCUMENTO', 'LIKE', `%${ent_numero_identidad}%`);
+        }
+
+        if (ent_tipo_documento) {
+          query.orWhere('USR_TIPO_DOCUMENTO', 'LIKE', `%${ent_tipo_documento}%`);
+        }
+
+        const data = await query.select("*");
+
+        return response.status(200).json({
+          data,
+          message: { success: "Peticion terminada exitosamente" },
+        });
       }
-
-      if (ent_numero_identidad) {
-        query.orWhere('USR_NUMERO_DOCUMENTO', 'LIKE', `%${ent_numero_identidad}%`);
-      }
-
-      if (ent_tipo_documento) {
-        query.orWhere('USR_TIPO_DOCUMENTO', 'LIKE', `%${ent_tipo_documento}%`);
-      }
-
-      const data = await query.select("*");
-
-      return response.status(200).json({
-        data,
-        message: { success: "Peticion terminada exitosamente" },
-      });
     } catch (err) {
       console.log(err);
       return response
