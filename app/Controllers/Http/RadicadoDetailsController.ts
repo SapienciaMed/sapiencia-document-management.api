@@ -775,9 +775,8 @@ export default class RadicadoDetailsController {
         });
       }
 
-      const bucketName = "sapiencia-document-management";
       const storage = new Storage();
-      const bucket = storage.bucket(bucketName);
+      const bucket = storage.bucket(process.env.BUCKET_NAME || '');
 
       for (const file of files) {
         const radicado = file.clientName.replace(".pdf", "");
@@ -1016,9 +1015,8 @@ export default class RadicadoDetailsController {
       }
 
       const files = request.files("files");
-      const bucketName = "sapiencia-document-management";
       const storage = new Storage();
-      const bucket = storage.bucket(bucketName);
+      const bucket = storage.bucket(process.env.BUCKET_NAME || '');
 
       for (const file of files) {
         const uniqueFileName = `${uuidv4()}_${file.clientName}`;
@@ -1175,9 +1173,11 @@ export default class RadicadoDetailsController {
             moment(rad.created_at).format("yyyy-MM-DD HH:mm:ss.SSS"),
             workdays,
             nonworkingdays
-          );
+            );
 
-          if (rad.rn_radicado_to_asunto.inf_unidad === "Días") {
+          console.log(rad.dra_radicado, tiempoTranscurrido, rad.created_at)
+
+          if (rad.rn_radicado_to_asunto.inf_unidad == "Días") {
             tiempoTranscurrido = tiempoTranscurrido / 1440;
           }
 
