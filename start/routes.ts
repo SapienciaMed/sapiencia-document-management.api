@@ -103,8 +103,6 @@ Route.group(() => {
     "RadicadoDetailsController.findAllPending"
   ).middleware("auth:BANDEJA_DESTINATARIOS");
 
-  Route.resource("/radicado-details", "RadicadoDetailsController").apiOnly();
-
   Route.get(
     "/radicado-details/by-radicator/radicado/:id",
     "RadicadoDetailsController.findByIdAndRadicator"
@@ -114,6 +112,7 @@ Route.group(() => {
     "/radicado-details/all-radicators",
     "RadicadoDetailsController.findByIdAndRadicator"
   );
+  Route.resource("/radicado-details", "RadicadoDetailsController").apiOnly();
 })
   .prefix("/api/v1/document-management")
   .middleware("auth");
