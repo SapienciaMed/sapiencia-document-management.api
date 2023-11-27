@@ -116,7 +116,7 @@ Route.group(() => {
   );
 })
   .prefix("/api/v1/document-management")
-  .middleware("auth");
+  // .middleware("auth");
 
 //Related Answers
 Route.group(() => {
