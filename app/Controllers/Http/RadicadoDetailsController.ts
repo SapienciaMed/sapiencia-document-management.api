@@ -157,7 +157,8 @@ export default class RadicadoDetailsController {
         if (role !== "ADM_ROL") {
           query
             .where("rd.DRA_ID_DESTINATARIO", id)
-            .orWhere("rcd.RCD_ID_DESTINATARIO", id);
+            .orWhere("rcd.RCD_ID_DESTINATARIO", id)
+            .orWhere("rcd.DRA_ID_REMITENTE", id);
         }
       }
 
