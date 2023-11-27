@@ -275,8 +275,8 @@ export default class RadicadoDetailsController {
 
   public async getSummaryFileds({ response, request }: HttpContextContract) {
     try {
-      const role = request.input("role");
-      const id = request.input("id");
+      const role = request.input("role") || 'role';
+      const id = request.input("id") || '';
       let workdays: any[] = [];
       let nonworkingdays: any[] = [];
       const cgeConfiguracion = await Database.from("CGE_CONFIGURACION_GENERAL")
@@ -295,7 +295,7 @@ export default class RadicadoDetailsController {
       )
 
       if (role !== "ADM_ROL") {
-        rads.where("rcd.DRA_CREADO_POR", id);
+        rads.where("rd.DRA_CREADO_POR", id);
       }
 
       rads = await rads.select("rd.created_at", "ib.INF_TIMEPO_RESPUESTA", "ib.INF_UNIDAD");
