@@ -158,7 +158,7 @@ export default class RadicadoDetailsController {
           query
             .where("rd.DRA_ID_DESTINATARIO", id)
             .orWhere("rcd.RCD_ID_DESTINATARIO", id)
-            .orWhere("rcd.DRA_ID_REMITENTE", id);
+            .orWhere("rcd.DRA_CREADO_POR", id);
         }
       }
 
@@ -273,8 +273,10 @@ export default class RadicadoDetailsController {
     }
   }
 
-  public async getSummaryFileds({ response }: HttpContextContract) {
+  public async getSummaryFileds({ response, request }: HttpContextContract) {
     try {
+      const role = request.input("role");
+      const id = request.input("id");
       let workdays: any[] = [];
       let nonworkingdays: any[] = [];
       const cgeConfiguracion = await Database.from("CGE_CONFIGURACION_GENERAL")
@@ -286,13 +288,19 @@ export default class RadicadoDetailsController {
           ? cgeConfiguracion.CGE_DIAS_HABILES
           : false;
 
-      const rads: any[] = await Database.from("radicado_details as rd")
-        .join(
-          "INF_INFORMACION_BASICA as ib",
-          "rd.DRA_CODIGO_ASUNTO",
-          "ib.INF_CODIGO_ASUNTO"
-        )
-        .select("rd.created_at", "ib.INF_TIMEPO_RESPUESTA", "ib.INF_UNIDAD");
+      let rads: any = Database.from("radicado_details as rd").join(
+        "INF_INFORMACION_BASICA as ib",
+        "rd.DRA_CODIGO_ASUNTO",
+        "ib.INF_CODIGO_ASUNTO"
+      )
+
+      if (role !== "ADM_ROL") {
+        rads.where("rcd.DRA_CREADO_POR", id);
+      }
+
+      rads = await rads.select("rd.created_at", "ib.INF_TIMEPO_RESPUESTA", "ib.INF_UNIDAD");
+
+
 
       if (useWorkDays) {
         workdays = await Database.connection("citizen_attention")
