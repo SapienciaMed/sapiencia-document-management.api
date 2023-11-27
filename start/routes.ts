@@ -116,7 +116,7 @@ Route.group(() => {
   );
 })
   .prefix("/api/v1/document-management")
-  // .middleware("auth");
+  .middleware("auth");
 
 //Related Answers
 Route.group(() => {
@@ -147,6 +147,7 @@ Route.group(() => {
     "/update/:id",
     "GeneralConfigurationController.updateGeneralConfiguration"
   );
+
   Route.get(
     "/get-radicado-code/:type",
     "GeneralConfigurationController.getRadicadoCode"
