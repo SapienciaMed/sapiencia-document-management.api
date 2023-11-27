@@ -8,7 +8,7 @@ import { ApiResponse } from "App/Utils/ApiResponses";
 import { EResponseCodes } from "App/Constants/ResponseCodesEnum";
 import { v4 as uuidv4 } from "uuid";
 
-const zonaHorariaColombia = 'America/Bogota';
+const zonaHorariaColombia = "America/Bogota";
 export default class RadicadoDetailsController {
   constructor() {}
 
@@ -157,7 +157,8 @@ export default class RadicadoDetailsController {
         if (role !== "ADM_ROL") {
           query
             .where("rd.DRA_ID_DESTINATARIO", id)
-            .orWhere("rcd.RCD_ID_DESTINATARIO", id);
+            .orWhere("rcd.RCD_ID_DESTINATARIO", id)
+            .orWhere("rcd.DRA_ID_REMITENTE", id);
         }
       }
 
@@ -823,11 +824,15 @@ export default class RadicadoDetailsController {
         "DRA_ESTADO",
       ]);
 
-      const created_at = moment().tz(zonaHorariaColombia).format('YYYY-MM-DD HH:mm:ss.SSS');
-      const updated_at = moment().tz(zonaHorariaColombia).format('YYYY-MM-DD HH:mm:ss.SSS');
-      const DRA_ESTADO_RADICADO = 'Pendiente'
+      const created_at = moment()
+        .tz(zonaHorariaColombia)
+        .format("YYYY-MM-DD HH:mm:ss.SSS");
+      const updated_at = moment()
+        .tz(zonaHorariaColombia)
+        .format("YYYY-MM-DD HH:mm:ss.SSS");
+      const DRA_ESTADO_RADICADO = "Pendiente";
 
-      if (data.DRA_TIPO_DOCUMENTO_RADICADO == 'Recibido') {
+      if (data.DRA_TIPO_DOCUMENTO_RADICADO == "Recibido") {
         const currentCGERecibido = await Database.from(
           "CGE_CONFIGURACION_GENERAL"
         )
@@ -865,10 +870,9 @@ export default class RadicadoDetailsController {
             num_radicado: currentCGERecibido.CGE_RECIBIDO + 1,
           },
         });
-
       }
 
-      if (data.DRA_TIPO_DOCUMENTO_RADICADO == 'Externo') {
+      if (data.DRA_TIPO_DOCUMENTO_RADICADO == "Externo") {
         const currentCGEExterno = await Database.from(
           "CGE_CONFIGURACION_GENERAL"
         )
@@ -907,9 +911,6 @@ export default class RadicadoDetailsController {
           },
         });
       }
-
-
-
     } catch (error) {
       console.log(error);
       return response
@@ -1037,6 +1038,60 @@ export default class RadicadoDetailsController {
     }
   }
 
+  // public async findAllPending({ request, response }: HttpContextContract) {
+  //   const { numberDocument, role } = request.qs();
+  //   const { id } = request.params();
+
+  //   try {
+  //     if (numberDocument == process.env.CURRENT_USER_DOCUMENT) {
+  //       const RadicadoById = RadicadoDetail.query();
+
+  //       if (id) {
+  //         RadicadoById.orWhere("DRA_RADICADO", "like", `%${id}%`);
+  //       }
+
+  //       if (role !== "ADM_ROL") {
+  //         RadicadoById.where(
+  //           "dra_id_destinatario",
+  //           "=",
+  //           `${process.env.CURRENT_USER_DOCUMENT}`
+  //         );
+  //       }
+
+  //       const data = await RadicadoById.preload(
+  //         "rn_radicado_remitente_to_entity"
+  //       )
+  //         .preload("rn_radicado_destinatario_to_entity")
+  //         .where("dra_estado_radicado", "Pendiente")
+  //         .select("*")
+  //         .limit(100);
+
+  //       if (data.length == 0) {
+  //         return response
+  //           .status(404)
+  //           .send(
+  //             new ApiResponse(
+  //               [],
+  //               EResponseCodes.NOT_FOUND,
+  //               "No hay registros para mostrar"
+  //             )
+  //           );
+  //       }
+
+  //       return response
+  //         .status(200)
+  //         .send(new ApiResponse(data, EResponseCodes.OK, "Datos Encontrados"));
+  //     } else {
+  //       console.error("Intenta acceder de manera incorrecta");
+  //       throw new Error("Intenta acceder de manera incorrecta");
+  //     }
+  //   } catch (error) {
+  //     return response
+  //       .status(400)
+  //       .send(new ApiResponse([], EResponseCodes.FAIL, error.message));
+  //   }
+  // }
+
   public async findAllPending({ request, response }: HttpContextContract) {
     const { numberDocument, role } = request.qs();
     const { id } = request.params();
@@ -1044,6 +1099,47 @@ export default class RadicadoDetailsController {
     try {
       if (numberDocument == process.env.CURRENT_USER_DOCUMENT) {
         const RadicadoById = RadicadoDetail.query();
+
+        let workdays: any[] = [];
+        let nonworkingdays: any[] = [];
+        const cgeConfiguracion = await Database.from(
+          "CGE_CONFIGURACION_GENERAL"
+        )
+          .select("CGE_DIAS_HABILES")
+          .first();
+
+        const useWorkDays =
+          cgeConfiguracion && cgeConfiguracion.CGE_DIAS_HABILES !== null
+            ? cgeConfiguracion.CGE_DIAS_HABILES
+            : false;
+
+        if (useWorkDays) {
+          workdays = await Database.connection("citizen_attention")
+            .from("PDD_PARAMETRIZACION_DIAS_DETALLE")
+            .where("PDD_CODTDI_DIA", 1)
+            .select("PDD_FECHA");
+
+          workdays = workdays.map((item: { PDD_FECHA: string }) =>
+            moment(item.PDD_FECHA).format("yyyy-MM-DD HH:mm:ss.SSS")
+          );
+
+          nonworkingdays = await Database.connection("citizen_attention")
+            .from("PDD_PARAMETRIZACION_DIAS_DETALLE")
+            .where("PDD_CODTDI_DIA", 2)
+            .select("PDD_FECHA");
+
+          nonworkingdays = nonworkingdays.map((item: { PDD_FECHA: string }) =>
+            moment(item.PDD_FECHA).format("yyyy-MM-DD HH:mm:ss.SSS")
+          );
+        }
+
+        // const responseObj: Record<string, number> = {
+        //   documentos_vencidos_sin_tramitar: 0, //rojo
+        //   documentos_en_fase_inicial_de_tramite: 0, //verde
+        //   documentos_a_tramitar_prontamente: 0, //amarillo
+        //   documentos_proximos_a_vencerse: 0, //naranja
+        //   total: 0,
+        // };
 
         if (id) {
           RadicadoById.orWhere("DRA_RADICADO", "like", `%${id}%`);
@@ -1061,7 +1157,94 @@ export default class RadicadoDetailsController {
           "rn_radicado_remitente_to_entity"
         )
           .preload("rn_radicado_destinatario_to_entity")
+          .preload("rn_radicado_to_asunto")
           .where("dra_estado_radicado", "Pendiente")
+          .select("*")
+          .limit(100);
+
+        for (const rad of data) {
+          let tiempoTranscurrido = this.calcularTiempoTranscurrido(
+            moment(rad.created_at).format("yyyy-MM-DD HH:mm:ss.SSS"),
+            workdays,
+            nonworkingdays
+          );
+
+          if (rad.rn_radicado_to_asunto.inf_unidad === "Días") {
+            tiempoTranscurrido = tiempoTranscurrido / 1440;
+          }
+
+          const estado = this.determineRadicadoState(
+            tiempoTranscurrido,
+            rad.rn_radicado_to_asunto.inf_timepo_respuesta as any
+          );
+
+          rad.dra_estado = estado;
+
+          // console.log("estado", estado);
+          // responseObj[estado] += 1;
+          // responseObj.total++;
+        }
+        //console.log(responseObj, "responseObj");
+
+        if (data.length == 0) {
+          return response
+            .status(404)
+            .send(
+              new ApiResponse(
+                [],
+                EResponseCodes.NOT_FOUND,
+                "No hay registros para mostrar"
+              )
+            );
+        }
+
+        return response
+          .status(200)
+          .send(new ApiResponse(data, EResponseCodes.OK, "Datos Encontrados"));
+      } else {
+        console.error("Intenta acceder de manera incorrecta");
+        throw new Error("Intenta acceder de manera incorrecta");
+      }
+    } catch (error) {
+      return response
+        .status(400)
+        .send(new ApiResponse([], EResponseCodes.FAIL, error.message));
+    }
+  }
+
+  /**
+   * Buscar Radicado y radicador
+   * @param param0
+   * @returns
+   */
+  public async findByIdAndRadicator({
+    request,
+    response,
+  }: HttpContextContract) {
+    const { numberDocument, role } = request.qs();
+
+    const { id } = request.params();
+    try {
+      if (numberDocument == process.env.CURRENT_USER_DOCUMENT) {
+        const RadicadoById = RadicadoDetail.query();
+
+        if (id) {
+          RadicadoById.orWhere("DRA_RADICADO", "like", `%${id}%`);
+        }
+
+        if (role !== "ADM_ROL") {
+          RadicadoById.where(
+            "dra_radicado_por",
+            "=",
+            `${process.env.CURRENT_USER_DOCUMENT}`
+          );
+        }
+
+        const data = await RadicadoById.preload(
+          "rn_radicado_remitente_to_entity"
+        )
+          .preload("rn_radicado_destinatario_to_entity")
+          .preload("rn_radicado_to_asunto")
           .select("*")
           .limit(100);
 
