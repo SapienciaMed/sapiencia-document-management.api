@@ -157,7 +157,8 @@ export default class RadicadoDetailsController {
         if (role !== "ADM_ROL") {
           query
             .where("rd.DRA_ID_DESTINATARIO", id)
-            .orWhere("rcd.RCD_ID_DESTINATARIO", id);
+            .orWhere("rcd.RCD_ID_DESTINATARIO", id)
+            .orWhere("rcd.DRA_CREADO_POR", id);
         }
       }
 
@@ -272,8 +273,10 @@ export default class RadicadoDetailsController {
     }
   }
 
-  public async getSummaryFileds({ response }: HttpContextContract) {
+  public async getSummaryFileds({ response, request }: HttpContextContract) {
     try {
+      const role = request.input("role") || "role";
+      const id = request.input("id") || "";
       let workdays: any[] = [];
       let nonworkingdays: any[] = [];
       const cgeConfiguracion = await Database.from("CGE_CONFIGURACION_GENERAL")
@@ -285,13 +288,21 @@ export default class RadicadoDetailsController {
           ? cgeConfiguracion.CGE_DIAS_HABILES
           : false;
 
-      const rads: any[] = await Database.from("radicado_details as rd")
-        .join(
-          "INF_INFORMACION_BASICA as ib",
-          "rd.DRA_CODIGO_ASUNTO",
-          "ib.INF_CODIGO_ASUNTO"
-        )
-        .select("rd.created_at", "ib.INF_TIMEPO_RESPUESTA", "ib.INF_UNIDAD");
+      let rads: any = Database.from("radicado_details as rd").join(
+        "INF_INFORMACION_BASICA as ib",
+        "rd.DRA_CODIGO_ASUNTO",
+        "ib.INF_CODIGO_ASUNTO"
+      );
+
+      if (role !== "ADM_ROL") {
+        rads.where("rd.DRA_CREADO_POR", id);
+      }
+
+      rads = await rads.select(
+        "rd.created_at",
+        "ib.INF_TIMEPO_RESPUESTA",
+        "ib.INF_UNIDAD"
+      );
 
       if (useWorkDays) {
         workdays = await Database.connection("citizen_attention")
@@ -766,9 +777,8 @@ export default class RadicadoDetailsController {
         });
       }
 
-      const bucketName = "sapiencia-document-management";
       const storage = new Storage();
-      const bucket = storage.bucket(bucketName);
+      const bucket = storage.bucket(process.env.BUCKET_NAME || "");
 
       for (const file of files) {
         const radicado = file.clientName.replace(".pdf", "");
@@ -1007,9 +1017,8 @@ export default class RadicadoDetailsController {
       }
 
       const files = request.files("files");
-      const bucketName = "sapiencia-document-management";
       const storage = new Storage();
-      const bucket = storage.bucket(bucketName);
+      const bucket = storage.bucket(process.env.BUCKET_NAME || "");
 
       for (const file of files) {
         const uniqueFileName = `${uuidv4()}_${file.clientName}`;
@@ -1159,8 +1168,6 @@ export default class RadicadoDetailsController {
             workdays,
             nonworkingdays
           );
-
-          //console.log(rad.dra_radicado, tiempoTranscurrido, rad.created_at);
 
           if (rad.rn_radicado_to_asunto.inf_unidad == "Días") {
             tiempoTranscurrido = tiempoTranscurrido / 1440;

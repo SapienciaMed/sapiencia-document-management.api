@@ -146,6 +146,7 @@ Route.group(() => {
     "/update/:id",
     "GeneralConfigurationController.updateGeneralConfiguration"
   );
+
   Route.get(
     "/get-radicado-code/:type",
     "GeneralConfigurationController.getRadicadoCode"
