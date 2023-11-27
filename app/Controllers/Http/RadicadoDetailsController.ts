@@ -1132,14 +1132,6 @@ export default class RadicadoDetailsController {
           );
         }
 
-        // const responseObj: Record<string, number> = {
-        //   documentos_vencidos_sin_tramitar: 0, //rojo
-        //   documentos_en_fase_inicial_de_tramite: 0, //verde
-        //   documentos_a_tramitar_prontamente: 0, //amarillo
-        //   documentos_proximos_a_vencerse: 0, //naranja
-        //   total: 0,
-        // };
-
         if (id) {
           RadicadoById.orWhere("DRA_RADICADO", "like", `%${id}%`);
         }
@@ -1163,12 +1155,14 @@ export default class RadicadoDetailsController {
 
         for (const rad of data) {
           let tiempoTranscurrido = this.calcularTiempoTranscurrido(
-            moment(rad.created_at).format("yyyy-MM-DD HH:mm:ss.SSS"),
+            rad.created_at.toFormat("yyyy-MM-dd HH:mm:ss.SSS"),
             workdays,
             nonworkingdays
           );
 
-          if (rad.rn_radicado_to_asunto.inf_unidad === "Días") {
+          //console.log(rad.dra_radicado, tiempoTranscurrido, rad.created_at);
+
+          if (rad.rn_radicado_to_asunto.inf_unidad == "Días") {
             tiempoTranscurrido = tiempoTranscurrido / 1440;
           }
 
@@ -1178,12 +1172,7 @@ export default class RadicadoDetailsController {
           );
 
           rad.dra_estado = estado;
-
-          // console.log("estado", estado);
-          // responseObj[estado] += 1;
-          // responseObj.total++;
         }
-        //console.log(responseObj, "responseObj");
 
         if (data.length == 0) {
           return response
