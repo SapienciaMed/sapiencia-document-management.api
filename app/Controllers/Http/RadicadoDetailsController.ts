@@ -1,5 +1,5 @@
 import type { HttpContextContract } from "@ioc:Adonis/Core/HttpContext";
-import moment from "moment";
+import moment from "moment-timezone";
 import { DateTime } from "luxon";
 import { Storage } from "@google-cloud/storage";
 import Database from "@ioc:Adonis/Lucid/Database";
@@ -7,6 +7,8 @@ import RadicadoDetail from "App/Models/RadicadoDetail";
 import { ApiResponse } from "App/Utils/ApiResponses";
 import { EResponseCodes } from "App/Constants/ResponseCodesEnum";
 import { v4 as uuidv4 } from "uuid";
+
+const zonaHorariaColombia = "America/Bogota";
 export default class RadicadoDetailsController {
   constructor() {}
 
@@ -821,6 +823,14 @@ export default class RadicadoDetailsController {
         "DRA_ESTADO",
       ]);
 
+      const created_at = moment()
+        .tz(zonaHorariaColombia)
+        .format("YYYY-MM-DD HH:mm:ss.SSS");
+      const updated_at = moment()
+        .tz(zonaHorariaColombia)
+        .format("YYYY-MM-DD HH:mm:ss.SSS");
+      const DRA_ESTADO_RADICADO = "Pendiente";
+
       if (data.DRA_TIPO_DOCUMENTO_RADICADO == "Recibido") {
         const currentCGERecibido = await Database.from(
           "CGE_CONFIGURACION_GENERAL"
@@ -837,7 +847,7 @@ export default class RadicadoDetailsController {
 
         await Database.table("radicado_details").insert({
           DRA_RADICADO: currentCGERecibido.CGE_RECIBIDO + 1,
-          ...data,
+          ...{ ...data, created_at, updated_at, DRA_ESTADO_RADICADO },
         });
 
         const copiesData = request.input("copies", []).map((copy) => ({
@@ -877,7 +887,7 @@ export default class RadicadoDetailsController {
 
         await Database.table("radicado_details").insert({
           DRA_RADICADO: currentCGEExterno.CGE_EXTERNO + 1,
-          ...data,
+          ...{ ...data, created_at, updated_at, DRA_ESTADO_RADICADO },
         });
 
         const copiesData = request.input("copies", []).map((copy) => ({
@@ -896,7 +906,7 @@ export default class RadicadoDetailsController {
           data: {
             radicado: data,
             copias: copiesData,
-            num_radicado: currentCGEExterno.CGE_RECIBIDO + 1,
+            num_radicado: currentCGEExterno.CGE_EXTERNO + 1,
           },
         });
       }
