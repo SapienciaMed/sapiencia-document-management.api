@@ -831,6 +831,7 @@ export default class RadicadoDetailsController {
         "DRA_TIPO_INFO",
         "DRA_CREADO_POR",
         "DRA_ESTADO",
+        "DRA_MOVIMIENTO",
       ]);
 
       const created_at = moment()
@@ -930,13 +931,15 @@ export default class RadicadoDetailsController {
 
   async findByCreateBy({ request, response }) {
     try {
-      const { userId, tipo } = request.params();
+      const { userId } = request.params();
+      const tipo = request.input("tipo") || "Recibido";
+
       let copies: any = [];
 
       const radicado = await Database.from("radicado_details")
         .where("DRA_CREADO_POR", userId)
         .where("DRA_ESTADO", "INCOMPLETO")
-        .where("DRA_TIPO_DOCUMENTO_RADICADO", tipo || 'Recibido')
+        .where("DRA_TIPO_DOCUMENTO_RADICADO", tipo)
         .first();
 
       if (!radicado) {
