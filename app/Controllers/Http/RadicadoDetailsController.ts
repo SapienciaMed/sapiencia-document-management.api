@@ -928,12 +928,13 @@ export default class RadicadoDetailsController {
 
   async findByCreateBy({ request, response }) {
     try {
-      const { userId } = request.params();
+      const { userId, tipo } = request.params();
       let copies: any = [];
 
       const radicado = await Database.from("radicado_details")
         .where("DRA_CREADO_POR", userId)
         .where("DRA_ESTADO", "INCOMPLETO")
+        .where("DRA_TIPO_DOCUMENTO_RADICADO", tipo || 'Recibido')
         .first();
 
       if (!radicado) {
