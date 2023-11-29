@@ -194,12 +194,7 @@ export default class RadicadoDetailsController {
           ? cgeConfiguracion.CGE_DIAS_HABILES
           : false;
 
-      const rads: any[] = await Database.from("radicado_details as rd")
-        .leftJoin(
-          "ENT_ENTIDAD as ent1",
-          "rd.DRA_ID_DESTINATARIO",
-          "ent1.ENT_NUMERO_IDENTIDAD"
-        )
+      let rads: any = Database.from("radicado_details as rd")
         .leftJoin(
           "RCD_RADICADO_COPIAS_DESTINATARIO as rcd",
           "rd.DRA_RADICADO",
@@ -211,8 +206,9 @@ export default class RadicadoDetailsController {
           "ib.INF_CODIGO_ASUNTO"
         )
         .where("rd.DRA_ID_DESTINATARIO", id)
-        .orWhere("rcd.RCD_ID_DESTINATARIO", id)
-        .select("rd.created_at", "ib.INF_TIMEPO_RESPUESTA", "ib.INF_UNIDAD");
+        .orWhere("rcd.RCD_ID_DESTINATARIO", id);
+
+        rads = await rads.select("rd.created_at", "ib.INF_TIMEPO_RESPUESTA", "ib.INF_UNIDAD");
 
       if (useWorkDays) {
         workdays = await Database.connection("citizen_attention")
@@ -250,7 +246,9 @@ export default class RadicadoDetailsController {
         );
 
         if (rad.INF_UNIDAD === "Días") {
-          tiempoTranscurrido = tiempoTranscurrido / 1440;
+
+          const result = this.convertMinutesToDays(tiempoTranscurrido);
+          tiempoTranscurrido = result.days;
         }
 
         const estado = this.determineRadicadoState(
@@ -275,7 +273,6 @@ export default class RadicadoDetailsController {
 
   public async getSummaryFileds({ response, request }: HttpContextContract) {
     try {
-      const role = request.input("role") || "role";
       const id = request.input("id") || "";
       let workdays: any[] = [];
       let nonworkingdays: any[] = [];
@@ -292,11 +289,8 @@ export default class RadicadoDetailsController {
         "INF_INFORMACION_BASICA as ib",
         "rd.DRA_CODIGO_ASUNTO",
         "ib.INF_CODIGO_ASUNTO"
-      );
+      ).where("rd.DRA_CREADO_POR", id);
 
-      if (role !== "ADM_ROL") {
-        rads.where("rd.DRA_CREADO_POR", id);
-      }
 
       rads = await rads.select(
         "rd.created_at",
@@ -363,39 +357,18 @@ export default class RadicadoDetailsController {
     }
   }
 
-  public calcularTiempoTranscurridoTodoLosDias(created_at: string) {
-    const horaInicioLaboral = 8;
-    const horaFinLaboral = 17;
+  public convertMinutesToDays(minutes: number, hoursPerDay: number = 9) {
+    const totalHours = minutes / 60;
+    const fullDays = Math.floor(totalHours / hoursPerDay);
+    const remainingHours = totalHours % hoursPerDay;
 
-    const fechaCreacion = DateTime.fromFormat(
-      created_at,
-      "yyyy-MM-DD HH:mm:ss.SSS"
-    );
-
-    const fechaActual = DateTime.local();
-
-    let minutosTranscurridos = 0;
-
-    let fechaIterativa = fechaCreacion;
-    while (fechaIterativa < fechaActual) {
-      if (fechaIterativa.weekday >= 1 && fechaIterativa.weekday <= 5) {
-        if (
-          (fechaIterativa.hour > horaInicioLaboral ||
-            (fechaIterativa.hour === horaInicioLaboral &&
-              fechaIterativa.minute >= 0)) &&
-          (fechaIterativa.hour < horaFinLaboral ||
-            (fechaIterativa.hour === horaFinLaboral &&
-              fechaIterativa.minute <= 0))
-        ) {
-          minutosTranscurridos += 1;
-        }
-      }
-
-      fechaIterativa = fechaIterativa.plus({ minutes: 1 });
-    }
-
-    return minutosTranscurridos;
+    return {
+        days: fullDays,
+        remainingHours: remainingHours
+    };
   }
+
+
 
   public calcularTiempoTranscurrido(
     created_at: string,
