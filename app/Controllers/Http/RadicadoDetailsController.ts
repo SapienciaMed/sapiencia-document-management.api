@@ -221,7 +221,8 @@ export default class RadicadoDetailsController {
         let tiempoTranscurrido = this.calcularTiempoTranscurrido(
           moment(rad.created_at).format("yyyy-MM-DD HH:mm:ss.SSS"),
           workdays,
-          nonworkingdays
+          nonworkingdays,
+          useWorkDays
         );
 
         if (rad.INF_UNIDAD === "Días") {
@@ -309,7 +310,8 @@ export default class RadicadoDetailsController {
         let tiempoTranscurrido = this.calcularTiempoTranscurrido(
           moment(rad.created_at).format("yyyy-MM-DD HH:mm:ss.SSS"),
           workdays,
-          nonworkingdays
+          nonworkingdays,
+          useWorkDays
         );
 
         if (rad.INF_UNIDAD === "Días") {
@@ -352,7 +354,8 @@ export default class RadicadoDetailsController {
   public calcularTiempoTranscurrido(
     created_at: string,
     workdays: string[],
-    nonworkingdays: string[]
+    nonworkingdays: string[],
+    useWorkDays: boolean= false,
   ) {
     const horaInicioLaboral = 8;
     const horaFinLaboral = 17;
@@ -368,7 +371,7 @@ export default class RadicadoDetailsController {
     let fechaIterativa = fechaCreacion;
     while (fechaIterativa < fechaActual) {
       const isDefaultWorkday =
-        fechaIterativa.weekday >= 1 && fechaIterativa.weekday <= 7;
+        fechaIterativa.weekday >= 1 && fechaIterativa.weekday <= (useWorkDays ? 5 : 7);
       const isAdditionalWorkday = workdays.includes(
         fechaIterativa.toFormat("yyyy-MM-dd")
       );
@@ -1122,7 +1125,8 @@ export default class RadicadoDetailsController {
           let tiempoTranscurrido = this.calcularTiempoTranscurrido(
             rad.created_at.toFormat("yyyy-MM-dd HH:mm:ss.SSS"),
             workdays,
-            nonworkingdays
+            nonworkingdays,
+            useWorkDays,
           );
 
           if (rad.rn_radicado_to_asunto.inf_unidad == "Días") {
