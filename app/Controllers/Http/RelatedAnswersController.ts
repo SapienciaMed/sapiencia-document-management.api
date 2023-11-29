@@ -46,6 +46,17 @@ export default class RelatedAnswersController {
         );
     } catch (error) {
       console.log(error.message);
+      if (error.code == "ER_DUP_ENTRY") {
+        return response
+          .status(400)
+          .send(
+            new ApiResponse(
+              [],
+              EResponseCodes.FAIL,
+              "El Radicado ya fue relacionado"
+            )
+          );
+      }
       return response
         .status(400)
         .send(new ApiResponse([], EResponseCodes.FAIL, error.message));
@@ -130,7 +141,7 @@ export default class RelatedAnswersController {
       }
 
       if (type) {
-        RadicadoByIdAndType.orWhere("DRA_TIPO_RADICADO", "=", type);
+        RadicadoByIdAndType.where("DRA_TIPO_RADICADO", "=", type);
       }
 
       const data = await RadicadoByIdAndType.preload(
@@ -151,7 +162,6 @@ export default class RelatedAnswersController {
             )
           );
       }
-
       return response
         .status(200)
         .send(new ApiResponse(data, EResponseCodes.OK, "Datos Encontrados"));
