@@ -158,7 +158,7 @@ export default class RadicadoDetailsController {
           query
             .where("rd.DRA_ID_DESTINATARIO", id)
             .orWhere("rcd.RCD_ID_DESTINATARIO", id)
-            .orWhere("rcd.DRA_CREADO_POR", id);
+            .orWhere("rd.DRA_CREADO_POR", id);
         }
       }
 
@@ -275,8 +275,8 @@ export default class RadicadoDetailsController {
 
   public async getSummaryFileds({ response, request }: HttpContextContract) {
     try {
-      const role = request.input("role") || 'role';
-      const id = request.input("id") || '';
+      const role = request.input("role") || "role";
+      const id = request.input("id") || "";
       let workdays: any[] = [];
       let nonworkingdays: any[] = [];
       const cgeConfiguracion = await Database.from("CGE_CONFIGURACION_GENERAL")
@@ -292,15 +292,17 @@ export default class RadicadoDetailsController {
         "INF_INFORMACION_BASICA as ib",
         "rd.DRA_CODIGO_ASUNTO",
         "ib.INF_CODIGO_ASUNTO"
-      )
+      );
 
       if (role !== "ADM_ROL") {
         rads.where("rd.DRA_CREADO_POR", id);
       }
 
-      rads = await rads.select("rd.created_at", "ib.INF_TIMEPO_RESPUESTA", "ib.INF_UNIDAD");
-
-
+      rads = await rads.select(
+        "rd.created_at",
+        "ib.INF_TIMEPO_RESPUESTA",
+        "ib.INF_UNIDAD"
+      );
 
       if (useWorkDays) {
         workdays = await Database.connection("citizen_attention")
@@ -775,9 +777,8 @@ export default class RadicadoDetailsController {
         });
       }
 
-      const bucketName = "sapiencia-document-management";
       const storage = new Storage();
-      const bucket = storage.bucket(bucketName);
+      const bucket = storage.bucket(process.env.BUCKET_NAME || "");
 
       for (const file of files) {
         const radicado = file.clientName.replace(".pdf", "");
@@ -830,6 +831,7 @@ export default class RadicadoDetailsController {
         "DRA_TIPO_INFO",
         "DRA_CREADO_POR",
         "DRA_ESTADO",
+        "DRA_MOVIMIENTO",
       ]);
 
       const created_at = moment()
@@ -930,11 +932,14 @@ export default class RadicadoDetailsController {
   async findByCreateBy({ request, response }) {
     try {
       const { userId } = request.params();
+      const tipo = request.input("tipo") || "Recibido";
+
       let copies: any = [];
 
       const radicado = await Database.from("radicado_details")
         .where("DRA_CREADO_POR", userId)
         .where("DRA_ESTADO", "INCOMPLETO")
+        .where("DRA_TIPO_DOCUMENTO_RADICADO", tipo)
         .first();
 
       if (!radicado) {
@@ -1016,9 +1021,8 @@ export default class RadicadoDetailsController {
       }
 
       const files = request.files("files");
-      const bucketName = "sapiencia-document-management";
       const storage = new Storage();
-      const bucket = storage.bucket(bucketName);
+      const bucket = storage.bucket(process.env.BUCKET_NAME || "");
 
       for (const file of files) {
         const uniqueFileName = `${uuidv4()}_${file.clientName}`;
@@ -1141,14 +1145,6 @@ export default class RadicadoDetailsController {
           );
         }
 
-        // const responseObj: Record<string, number> = {
-        //   documentos_vencidos_sin_tramitar: 0, //rojo
-        //   documentos_en_fase_inicial_de_tramite: 0, //verde
-        //   documentos_a_tramitar_prontamente: 0, //amarillo
-        //   documentos_proximos_a_vencerse: 0, //naranja
-        //   total: 0,
-        // };
-
         if (id) {
           RadicadoById.orWhere("DRA_RADICADO", "like", `%${id}%`);
         }
@@ -1172,12 +1168,12 @@ export default class RadicadoDetailsController {
 
         for (const rad of data) {
           let tiempoTranscurrido = this.calcularTiempoTranscurrido(
-            moment(rad.created_at).format("yyyy-MM-DD HH:mm:ss.SSS"),
+            rad.created_at.toFormat("yyyy-MM-dd HH:mm:ss.SSS"),
             workdays,
             nonworkingdays
           );
 
-          if (rad.rn_radicado_to_asunto.inf_unidad === "Días") {
+          if (rad.rn_radicado_to_asunto.inf_unidad == "Días") {
             tiempoTranscurrido = tiempoTranscurrido / 1440;
           }
 
@@ -1187,12 +1183,7 @@ export default class RadicadoDetailsController {
           );
 
           rad.dra_estado = estado;
-
-          // console.log("estado", estado);
-          // responseObj[estado] += 1;
-          // responseObj.total++;
         }
-        //console.log(responseObj, "responseObj");
 
         if (data.length == 0) {
           return response
