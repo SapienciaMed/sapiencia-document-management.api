@@ -49,7 +49,6 @@ export default class RadicadoDetailsController {
 
   public async searchByRecipient({ request, response }: HttpContextContract) {
     const id = request.input("id-destinatario");
-    const role = request.input("role");
     const days = request.input("dias");
     const start = request.input("desde");
     const end = request.input("hasta");
@@ -117,49 +116,29 @@ export default class RadicadoDetailsController {
         );
 
       if (start && end) {
-        if (role !== "ADM_ROL") {
-          query
-            .whereNotNull("rd.DRA_FECHA_EVACUACION_ENTRADA")
-            .whereNotNull("rd.DRA_FECHA_EVACUACION_SALIDA")
-            .andWhereRaw(
-              `(rd.DRA_FECHA_EVACUACION_ENTRADA >= ? AND rd.DRA_FECHA_EVACUACION_SALIDA <= ?) AND (rd.DRA_ID_DESTINATARIO = ? OR rcd.RCD_ID_DESTINATARIO = ?)`,
-              [start, end, id, id]
-            );
-        } else {
-          query
-            .whereNotNull("rd.DRA_FECHA_EVACUACION_ENTRADA")
-            .whereNotNull("rd.DRA_FECHA_EVACUACION_SALIDA")
-            .andWhereRaw(
-              `(rd.DRA_FECHA_EVACUACION_ENTRADA >= ? AND rd.DRA_FECHA_EVACUACION_SALIDA <= ?)`,
-              [start, end]
-            );
-        }
+        query
+          .whereNotNull("rd.DRA_FECHA_EVACUACION_ENTRADA")
+          .whereNotNull("rd.DRA_FECHA_EVACUACION_SALIDA")
+          .andWhereRaw(
+            `(rd.DRA_FECHA_EVACUACION_ENTRADA >= ? AND rd.DRA_FECHA_EVACUACION_SALIDA <= ?) AND (rd.DRA_ID_DESTINATARIO = ? OR rcd.RCD_ID_DESTINATARIO = ?)`,
+            [start, end, id, id]
+          );
+
       }
 
       if (days) {
-        if (role !== "ADM_ROL") {
-          query
-            .whereNotNull("rd.DRA_FECHA_EVACUACION_ENTRADA")
-            .andWhereRaw(
-              `DATE(rd.DRA_FECHA_EVACUACION_ENTRADA) >= ? AND (rd.DRA_ID_DESTINATARIO = ? OR rcd.RCD_ID_DESTINATARIO = ?)`,
-              [moment().subtract(days, "days").format("YYYY-MM-DD"), id, id]
-            );
-        } else {
-          query
-            .whereNotNull("rd.DRA_FECHA_EVACUACION_ENTRADA")
-            .andWhereRaw(`DATE(rd.DRA_FECHA_EVACUACION_ENTRADA) >= ?`, [
-              moment().subtract(days, "days").format("YYYY-MM-DD"),
-            ]);
-        }
+        query
+          .whereNotNull("rd.DRA_FECHA_EVACUACION_ENTRADA")
+          .andWhereRaw(
+            `DATE(rd.DRA_FECHA_EVACUACION_ENTRADA) >= ? AND (rd.DRA_ID_DESTINATARIO = ? OR rcd.RCD_ID_DESTINATARIO = ?)`,
+            [moment().subtract(days, "days").format("YYYY-MM-DD"), id, id]
+          );
       }
 
       if (!days && !start) {
-        if (role !== "ADM_ROL") {
-          query
-            .where("rd.DRA_ID_DESTINATARIO", id)
-            .orWhere("rcd.RCD_ID_DESTINATARIO", id)
-            .orWhere("rd.DRA_CREADO_POR", id);
-        }
+        query
+          .where("rd.DRA_ID_DESTINATARIO", id)
+          .orWhere("rcd.RCD_ID_DESTINATARIO", id);
       }
 
       const results = await query;
@@ -389,7 +368,7 @@ export default class RadicadoDetailsController {
     let fechaIterativa = fechaCreacion;
     while (fechaIterativa < fechaActual) {
       const isDefaultWorkday =
-        fechaIterativa.weekday >= 1 && fechaIterativa.weekday <= 5;
+        fechaIterativa.weekday >= 1 && fechaIterativa.weekday <= 7;
       const isAdditionalWorkday = workdays.includes(
         fechaIterativa.toFormat("yyyy-MM-dd")
       );
