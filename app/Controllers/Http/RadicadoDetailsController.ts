@@ -192,7 +192,7 @@ export default class RadicadoDetailsController {
       if (useWorkDays) {
         workdays = await Database.connection("citizen_attention")
           .from("PDD_PARAMETRIZACION_DIAS_DETALLE")
-          .where("PDD_CODTDI_DIA", 1)
+          .where("PDD_CODTDI_DIA", "!=", 2)
           .select("PDD_FECHA");
 
         workdays = workdays.map((item: { PDD_FECHA: string }) =>
@@ -281,7 +281,7 @@ export default class RadicadoDetailsController {
       if (useWorkDays) {
         workdays = await Database.connection("citizen_attention")
           .from("PDD_PARAMETRIZACION_DIAS_DETALLE")
-          .where("PDD_CODTDI_DIA", 1)
+          .where("PDD_CODTDI_DIA", "!=", 2)
           .select("PDD_FECHA");
 
         workdays = workdays.map((item: { PDD_FECHA: string }) =>
@@ -315,7 +315,8 @@ export default class RadicadoDetailsController {
         );
 
         if (rad.INF_UNIDAD === "Días") {
-          tiempoTranscurrido = tiempoTranscurrido / 1440;
+          const result = this.convertMinutesToDays(tiempoTranscurrido);
+          tiempoTranscurrido = result.days;
         }
 
         const estado = this.determineRadicadoState(
@@ -1083,7 +1084,7 @@ export default class RadicadoDetailsController {
         if (useWorkDays) {
           workdays = await Database.connection("citizen_attention")
             .from("PDD_PARAMETRIZACION_DIAS_DETALLE")
-            .where("PDD_CODTDI_DIA", 1)
+            .where("PDD_CODTDI_DIA", "!=", 2)
             .select("PDD_FECHA");
 
           workdays = workdays.map((item: { PDD_FECHA: string }) =>
@@ -1130,7 +1131,8 @@ export default class RadicadoDetailsController {
           );
 
           if (rad.rn_radicado_to_asunto.inf_unidad == "Días") {
-            tiempoTranscurrido = tiempoTranscurrido / 1440;
+            const result = this.convertMinutesToDays(tiempoTranscurrido);
+            tiempoTranscurrido = result.days;
           }
 
           const estado = this.determineRadicadoState(
