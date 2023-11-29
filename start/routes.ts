@@ -104,7 +104,7 @@ Route.group(() => {
   ).middleware("auth:BANDEJA_DESTINATARIOS");
 
   Route.get(
-    "/radicado-details/by-radicator/radicado/:id",
+    "/radicado-details/by-radicator/radicado/:id?",
     "RadicadoDetailsController.findByIdAndRadicator"
   );
 

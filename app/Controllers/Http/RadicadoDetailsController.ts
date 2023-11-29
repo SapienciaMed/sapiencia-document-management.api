@@ -1231,13 +1231,13 @@ export default class RadicadoDetailsController {
           RadicadoById.orWhere("DRA_RADICADO", "like", `%${id}%`);
         }
 
-        if (role !== "ADM_ROL") {
-          RadicadoById.where(
-            "dra_radicado_por",
-            "=",
-            `${process.env.CURRENT_USER_DOCUMENT}`
-          );
-        }
+        //if (role !== "ADM_ROL") {
+        RadicadoById.where(
+          "dra_radicado_por",
+          "=",
+          `${process.env.CURRENT_USER_DOCUMENT}`
+        );
+        // }
 
         const data = await RadicadoById.preload(
           "rn_radicado_remitente_to_entity"
