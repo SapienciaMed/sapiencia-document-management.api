@@ -158,7 +158,7 @@ export default class RadicadoDetailsController {
           query
             .where("rd.DRA_ID_DESTINATARIO", id)
             .orWhere("rcd.RCD_ID_DESTINATARIO", id)
-            .orWhere("rcd.DRA_CREADO_POR", id);
+            .orWhere("rd.DRA_CREADO_POR", id);
         }
       }
 
