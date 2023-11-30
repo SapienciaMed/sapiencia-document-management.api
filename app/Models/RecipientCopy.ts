@@ -4,14 +4,14 @@ import { BaseModel, column } from "@ioc:Adonis/Lucid/Orm";
 export default class RecipientCopy extends BaseModel {
   public static table = "RCD_RADICADO_COPIAS_DESTINATARIO";
 
-  @column({ isPrimary: true })
-  public RCD_CODIGO: number;
+  @column({ isPrimary: true, columnName: "RCD_CODIGO" })
+  public rcd_codigo: number;
 
-  @column()
-  public RCD_ID_DESTINATARIO: string;
+  @column({ columnName: "RCD_ID_DESTINATARIO" })
+  public rcd_id_destinatario: string;
 
-  @column()
-  public RCD_RADICADO: string;
+  @column({ columnName: "RCD_RADICADO" })
+  public rcd_radicado: string;
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime;

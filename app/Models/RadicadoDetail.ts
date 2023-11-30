@@ -10,6 +10,7 @@ import { DateTime } from "luxon";
 import RelatedAnswer from "./RelatedAnswer";
 import Entity from "./Entity";
 import BasicDocumentInformation from "./BasicDocumentInformation";
+import RecipientCopy from "./RecipientCopy";
 
 export default class RadicadoDetail extends BaseModel {
   public static table = "radicado_details";
@@ -104,6 +105,12 @@ export default class RadicadoDetail extends BaseModel {
     localKey: "dra_radicado",
   })
   public rn_radicado_details_to_related_answer: HasMany<typeof RelatedAnswer>;
+
+  @hasMany(() => RecipientCopy, {
+    foreignKey: "rcd_radicado",
+    localKey: "dra_radicado",
+  })
+  public rn_radicado_details_to_recipient_copy: HasMany<typeof RecipientCopy>;
 
   @hasOne(() => Entity, {
     localKey: "dra_id_remitente",
