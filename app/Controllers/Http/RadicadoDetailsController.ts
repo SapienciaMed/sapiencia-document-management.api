@@ -1063,7 +1063,7 @@ export default class RadicadoDetailsController {
   // }
 
   public async findAllPending({ request, response }: HttpContextContract) {
-    const { numberDocument, role } = request.qs();
+    const { numberDocument } = request.qs();
     const { id } = request.params();
 
     try {
@@ -1180,7 +1180,7 @@ export default class RadicadoDetailsController {
     request,
     response,
   }: HttpContextContract) {
-    const { numberDocument, role } = request.qs();
+    const { numberDocument } = request.qs();
 
     const { id } = request.params();
     try {
