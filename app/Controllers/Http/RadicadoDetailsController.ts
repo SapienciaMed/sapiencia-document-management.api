@@ -894,7 +894,17 @@ export default class RadicadoDetailsController {
 
       let copies: any = [];
 
-      const radicado = await Database.from("radicado_details")
+      const radicado = await Database.from("radicado_details as rd")
+        .leftJoin(
+          "INF_INFORMACION_BASICA as ib",
+          "rd.DRA_CODIGO_ASUNTO",
+          "ib.INF_CODIGO_ASUNTO"
+        )
+        .leftJoin(
+          "ENT_ENTIDAD as ent1",
+          "rd.DRA_ID_DESTINATARIO",
+          "ent1.ENT_NUMERO_IDENTIDAD"
+        )
         .where("DRA_CREADO_POR", userId)
         .where("DRA_ESTADO", "INCOMPLETO")
         .where("DRA_TIPO_DOCUMENTO_RADICADO", tipo)
