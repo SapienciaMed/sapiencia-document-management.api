@@ -1068,7 +1068,7 @@ export default class RadicadoDetailsController {
 
     try {
       if (numberDocument == process.env.CURRENT_USER_DOCUMENT) {
-        const RadicadoById = RadicadoDetail.query();
+
 
         let workdays: any[] = [];
         let nonworkingdays: any[] = [];
@@ -1103,22 +1103,37 @@ export default class RadicadoDetailsController {
           );
         }
 
+        const RadicadoById = RadicadoDetail.query();
+
         if (id) {
           RadicadoById.orWhere("DRA_RADICADO", "like", `%${id}%`);
         }
 
         //if (role !== "ADM_ROL") {
-        RadicadoById.where(
-          "dra_id_destinatario",
-          "=",
-          `${process.env.CURRENT_USER_DOCUMENT}`
-        );
+        // RadicadoById.where(
+        //   "dra_id_destinatario",
+        //   "=",
+        //   `${process.env.CURRENT_USER_DOCUMENT}`
+        // );
+
+        // RadicadoById.where(
+        //   "RCD_RADICADO_COPIAS_DESTINATARIO.rcd_id_destinatario",
+        //   "=",
+        //   `${process.env.CURRENT_USER_DOCUMENT}`
+        // );
         // }
 
-        const data = await RadicadoById.preload(
-          "rn_radicado_remitente_to_entity"
-        )
+        const data = await RadicadoById
+          .where((builder) => {
+            builder
+              .where('dra_id_destinatario', `${process.env.CURRENT_USER_DOCUMENT}`)
+              .orWhereHas('rn_radicado_details_to_recipient_copy', (query) => {
+                query.where('rcd_id_destinatario', `${process.env.CURRENT_USER_DOCUMENT}`);
+              });
+          })
+          .preload("rn_radicado_remitente_to_entity")
           .preload("rn_radicado_destinatario_to_entity")
+          .preload("rn_radicado_details_to_recipient_copy")
           .preload("rn_radicado_to_asunto")
           .where("dra_estado_radicado", "Pendiente")
           .select("*")
