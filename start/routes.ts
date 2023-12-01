@@ -147,17 +147,23 @@ Route.group(() => {
     "GeneralConfigurationController.updateGeneralConfiguration"
   );
 
-  Route.get(
-    "/get-radicado-code/:type",
-    "GeneralConfigurationController.getRadicadoCode"
-  ).middleware("authPortal");
-  Route.put(
-    "/update-radicado-code/:type",
-    "GeneralConfigurationController.updateRadicadoCode"
-  ).middleware("authPortal");
+
 })
   .prefix("/api/v1/general-configuration")
   .middleware("auth");
+
+Route.group(() => {
+Route.get(
+  "/get-radicado-code/:type",
+  "GeneralConfigurationController.getRadicadoCode"
+)
+Route.put(
+  "/update-radicado-code/:type",
+  "GeneralConfigurationController.updateRadicadoCode"
+)
+})
+  .prefix("/api/v1/general-configuration")
+  .middleware("authPortal");
 
 Route.group(() => {
   Route.resource(
