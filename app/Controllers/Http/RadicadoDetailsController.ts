@@ -64,6 +64,7 @@ export default class RadicadoDetailsController {
           "rd.DRA_REFERENCIA",
           "rd.DRA_RADICADO_ORIGEN",
           "rd.DRA_PRIORIDAD",
+          "rd.created_at",
           Database.raw(`
           CASE
             WHEN ent1.ENT_TIPO_DOCUMENTO = 'NIT' THEN ent1.ENT_RAZON_SOCIAL
@@ -199,7 +200,7 @@ export default class RadicadoDetailsController {
           .select("PDD_FECHA");
 
         workdays = workdays.map((item: { PDD_FECHA: string }) =>
-          moment(item.PDD_FECHA).format("yyyy-MM-DD HH:mm:ss.SSS")
+          moment(item.PDD_FECHA).format("YYYY-MM-DD HH:mm:ss.SSS")
         );
 
         nonworkingdays = await Database.connection("citizen_attention")
@@ -208,7 +209,7 @@ export default class RadicadoDetailsController {
           .select("PDD_FECHA");
 
         nonworkingdays = nonworkingdays.map((item: { PDD_FECHA: string }) =>
-          moment(item.PDD_FECHA).format("yyyy-MM-DD HH:mm:ss.SSS")
+          moment(item.PDD_FECHA).format("YYYY-MM-DD HH:mm:ss.SSS")
         );
       }
 
@@ -222,7 +223,7 @@ export default class RadicadoDetailsController {
 
       for (const rad of rads) {
         let tiempoTranscurrido = this.calcularTiempoTranscurrido(
-          moment(rad.created_at).format("yyyy-MM-DD HH:mm:ss.SSS"),
+          rad.created_at,
           workdays,
           nonworkingdays,
           useWorkDays
@@ -311,7 +312,7 @@ export default class RadicadoDetailsController {
 
       for (const rad of rads) {
         let tiempoTranscurrido = this.calcularTiempoTranscurrido(
-          moment(rad.created_at).format("yyyy-MM-DD HH:mm:ss.SSS"),
+          rad.created_at,
           workdays,
           nonworkingdays,
           useWorkDays
@@ -491,7 +492,7 @@ export default class RadicadoDetailsController {
 
   //       for (const rad of data) {
   //         let tiempoTranscurrido = this.calcularTiempoTranscurrido(
-  //           moment(rad.created_at).format("yyyy-MM-DD HH:mm:ss.SSS"),
+  //           rad.created_at,
   //           workdays,
   //           nonworkingdays
   //         );
@@ -895,21 +896,76 @@ export default class RadicadoDetailsController {
       let copies: any = [];
 
       const radicado = await Database.from("radicado_details as rd")
-        .leftJoin(
-          "INF_INFORMACION_BASICA as ib",
-          "rd.DRA_CODIGO_ASUNTO",
-          "ib.INF_CODIGO_ASUNTO"
-        )
-        .leftJoin(
-          "ENT_ENTIDAD as ent1",
-          "rd.DRA_ID_DESTINATARIO",
-          "ent1.ENT_NUMERO_IDENTIDAD"
-        )
-        .where("DRA_CREADO_POR", userId)
-        .where("DRA_ESTADO", "INCOMPLETO")
-        .where("DRA_TIPO_DOCUMENTO_RADICADO", tipo)
-        .first();
-
+    .leftJoin(
+      "INF_INFORMACION_BASICA as ib",
+      "rd.DRA_CODIGO_ASUNTO",
+      "ib.INF_CODIGO_ASUNTO"
+    )
+    .leftJoin(
+      "ENT_ENTIDAD as ent1",
+      "rd.DRA_ID_DESTINATARIO",
+      "ent1.ENT_NUMERO_IDENTIDAD"
+    )
+    .where("rd.DRA_CREADO_POR", userId)
+    .where("rd.DRA_ESTADO", "INCOMPLETO")
+    .where("rd.DRA_TIPO_DOCUMENTO_RADICADO", tipo)
+    .select([
+      "rd.DRA_CODIGO",
+      "rd.DRA_CODIGO_ASUNTO",
+      "rd.DRA_CREADO_POR",
+      "rd.DRA_ESTADO",
+      "rd.DRA_ESTADO_RADICADO",
+      "rd.DRA_FECHA_EVACUACION_ENTRADA",
+      "rd.DRA_FECHA_EVACUACION_SALIDA",
+      "rd.DRA_FECHA_RADICADO",
+      "rd.DRA_ID_DESTINATARIO",
+      "rd.DRA_ID_REMITENTE",
+      "rd.DRA_MOVIMIENTO",
+      "rd.DRA_NOMBRE_RADICADOR",
+      "rd.DRA_NUM_ANEXOS",
+      "rd.DRA_NUM_CAJAS",
+      "rd.DRA_NUM_FOLIOS",
+      "rd.DRA_OBSERVACION",
+      "rd.DRA_OPCIONES_RESPUESTA",
+      "rd.DRA_PRIORIDAD",
+      "rd.DRA_PRIORIDAD_ASUNTO",
+      "rd.DRA_RADICADO",
+      "rd.DRA_RADICADO_ORIGEN",
+      "rd.DRA_RADICADO_POR",
+      "rd.DRA_REFERENCIA",
+      "rd.DRA_TIPO_ASUNTO",
+      "rd.DRA_TIPO_DOCUMENTO_RADICADO",
+      "rd.DRA_TIPO_INFO",
+      "rd.DRA_TIPO_RADICADO",
+      "rd.DRA_USUARIO",
+      "ent1.ENT_ABREVIATURA",
+      "ent1.ENT_APELLIDOS",
+      "ent1.ENT_CODIGO",
+      "ent1.ENT_CONTACTO_DOS",
+      "ent1.ENT_CONTACTO_UNO",
+      "ent1.ENT_DEPARTAMENTO",
+      "ent1.ENT_DIRECCION",
+      "ent1.ENT_EMAIL",
+      "ent1.ENT_ESTADO",
+      "ent1.ENT_MUNICIPIO",
+      "ent1.ENT_NOMBRES",
+      "ent1.ENT_NUMERO_IDENTIDAD",
+      "ent1.ENT_OBSERVACIONES",
+      "ent1.ENT_PAIS",
+      "ent1.ENT_RAZON_SOCIAL",
+      "ent1.ENT_TIPO_DOCUMENTO",
+      "ent1.ENT_TIPO_ENTIDAD",
+      "ib.INF_CODIGO",
+      "ib.INF_CODIGO_ASUNTO",
+      "ib.INF_NOMBRE_ASUNTO",
+      "ib.INF_PRIORIDAD",
+      "ib.INF_TIMEPO_RESPUESTA",
+      "ib.INF_TIPO",
+      "ib.INF_UNIDAD",
+      "rd.created_at",
+      "rd.updated_at"
+    ])
+    .first();
       if (!radicado) {
         return response.json({
           radicado: {},
@@ -1151,7 +1207,7 @@ export default class RadicadoDetailsController {
 
         for (const rad of data) {
           let tiempoTranscurrido = this.calcularTiempoTranscurrido(
-            rad.created_at.toFormat("yyyy-MM-dd HH:mm:ss.SSS"),
+            rad.created_at,
             workdays,
             nonworkingdays,
             useWorkDays
