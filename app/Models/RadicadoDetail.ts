@@ -90,11 +90,12 @@ export default class RadicadoDetail extends BaseModel {
   @column({ columnName: "DRA_USUARIO" })
   public dra_usuario: string;
 
-  @column.date({
-    columnName: "created_at",
-    serialize: (value) => value.toFormat("dd/MM/yyyy HH:mm:ss"),
-  })
-  public created_at: DateTime;
+  @column({ columnName: "created_at" })
+  public created_at: string;
+
+  @column({ columnName: "updated_at" })
+  public updated_at: string;
+
 
   //dra_estado no pertenece a la base de datos es computada en findById
   @column()
