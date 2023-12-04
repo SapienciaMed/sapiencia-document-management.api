@@ -1136,8 +1136,6 @@ export default class RadicadoDetailsController {
 
     try {
       if (numberDocument == process.env.CURRENT_USER_DOCUMENT) {
-
-
         let workdays: any[] = [];
         let nonworkingdays: any[] = [];
         const cgeConfiguracion = await Database.from(
@@ -1191,14 +1189,19 @@ export default class RadicadoDetailsController {
         // );
         // }
 
-        const data = await RadicadoById
-          .where((builder) => {
-            builder
-              .where('dra_id_destinatario', `${process.env.CURRENT_USER_DOCUMENT}`)
-              .orWhereHas('rn_radicado_details_to_recipient_copy', (query) => {
-                query.where('rcd_id_destinatario', `${process.env.CURRENT_USER_DOCUMENT}`);
-              });
-          })
+        const data = await RadicadoById.where((builder) => {
+          builder
+            .where(
+              "dra_id_destinatario",
+              `${process.env.CURRENT_USER_DOCUMENT}`
+            )
+            .orWhereHas("rn_radicado_details_to_recipient_copy", (query) => {
+              query.where(
+                "rcd_id_destinatario",
+                `${process.env.CURRENT_USER_DOCUMENT}`
+              );
+            });
+        })
           .preload("rn_radicado_remitente_to_entity")
           .preload("rn_radicado_destinatario_to_entity")
           .preload("rn_radicado_details_to_recipient_copy")
@@ -1276,7 +1279,7 @@ export default class RadicadoDetailsController {
 
         //if (role !== "ADM_ROL") {
         RadicadoById.where(
-          "dra_id_destinatario",
+          "dra_radicado_por",
           "=",
           `${process.env.CURRENT_USER_DOCUMENT}`
         );
