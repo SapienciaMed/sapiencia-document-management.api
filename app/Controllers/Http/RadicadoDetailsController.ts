@@ -209,6 +209,8 @@ export default class RadicadoDetailsController {
           moment(item.PDD_FECHA).format("YYYY-MM-DD HH:mm:ss.SSS")
         );
 
+        console.log('workdays', workdays)
+
         nonworkingdays = await Database.connection("citizen_attention")
           .from("PDD_PARAMETRIZACION_DIAS_DETALLE")
           .where("PDD_CODTDI_DIA", 2)
@@ -383,15 +385,17 @@ export default class RadicadoDetailsController {
       const isDefaultWorkday =
         fechaIterativa.weekday >= 1 &&
         fechaIterativa.weekday <= (useWorkDays ? 5 : 7);
+
       const isAdditionalWorkday = workdays.includes(
-        fechaIterativa.toFormat("yyyy-MM-dd")
+        `${fechaIterativa.toFormat("yyyy-MM-dd")} 00:00:00.000`
       );
+
       const isAdditionalNonworkingday = nonworkingdays.includes(
-        fechaIterativa.toFormat("yyyy-MM-dd")
+        `${fechaIterativa.toFormat("yyyy-MM-dd")} 00:00:00.000`
       );
 
       if (
-        (isDefaultWorkday || isAdditionalWorkday) &&
+        (isAdditionalWorkday || isDefaultWorkday) &&
         !isAdditionalNonworkingday
       ) {
         if (
@@ -411,6 +415,7 @@ export default class RadicadoDetailsController {
 
     return minutosTranscurridos;
   }
+
 
   private determineRadicadoState(
     elapsedWorkingTime: number,
