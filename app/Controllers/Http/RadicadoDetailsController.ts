@@ -184,7 +184,9 @@ export default class RadicadoDetailsController {
           "ib.INF_CODIGO_ASUNTO"
         )
         .where("rd.DRA_ID_DESTINATARIO", id)
-        .orWhere("rcd.RCD_ID_DESTINATARIO", id);
+        .andWhere("rd.DRA_ESTADO_RADICADO", '!=', 'Evacuado')
+        .orWhere("rcd.RCD_ID_DESTINATARIO", id)
+        .andWhere("rd.DRA_ESTADO_RADICADO", '!=', 'Evacuado');
 
       rads = await rads.select(
         "rd.created_at",
@@ -273,7 +275,8 @@ export default class RadicadoDetailsController {
           "rd.DRA_CODIGO_ASUNTO",
           "ib.INF_CODIGO_ASUNTO"
         )
-        .where("rd.DRA_CREADO_POR", id);
+        .where("rd.DRA_CREADO_POR", id)
+        .andWhere("rd.DRA_ESTADO_RADICADO", '!=', 'Evacuado');
 
       rads = await rads.select(
         "rd.created_at",
