@@ -184,7 +184,9 @@ export default class RadicadoDetailsController {
           "ib.INF_CODIGO_ASUNTO"
         )
         .where("rd.DRA_ID_DESTINATARIO", id)
-        .orWhere("rcd.RCD_ID_DESTINATARIO", id);
+        .andWhere("rd.DRA_ESTADO_RADICADO", '!=', 'Evacuado')
+        .orWhere("rcd.RCD_ID_DESTINATARIO", id)
+        .andWhere("rd.DRA_ESTADO_RADICADO", '!=', 'Evacuado');
 
       rads = await rads.select(
         "rd.created_at",
@@ -273,7 +275,8 @@ export default class RadicadoDetailsController {
           "rd.DRA_CODIGO_ASUNTO",
           "ib.INF_CODIGO_ASUNTO"
         )
-        .where("rd.DRA_CREADO_POR", id);
+        .where("rd.DRA_CREADO_POR", id)
+        .andWhere("rd.DRA_ESTADO_RADICADO", '!=', 'Evacuado');
 
       rads = await rads.select(
         "rd.created_at",
@@ -1133,8 +1136,6 @@ export default class RadicadoDetailsController {
 
     try {
       if (numberDocument == process.env.CURRENT_USER_DOCUMENT) {
-
-
         let workdays: any[] = [];
         let nonworkingdays: any[] = [];
         const cgeConfiguracion = await Database.from(
@@ -1188,14 +1189,19 @@ export default class RadicadoDetailsController {
         // );
         // }
 
-        const data = await RadicadoById
-          .where((builder) => {
-            builder
-              .where('dra_id_destinatario', `${process.env.CURRENT_USER_DOCUMENT}`)
-              .orWhereHas('rn_radicado_details_to_recipient_copy', (query) => {
-                query.where('rcd_id_destinatario', `${process.env.CURRENT_USER_DOCUMENT}`);
-              });
-          })
+        const data = await RadicadoById.where((builder) => {
+          builder
+            .where(
+              "dra_id_destinatario",
+              `${process.env.CURRENT_USER_DOCUMENT}`
+            )
+            .orWhereHas("rn_radicado_details_to_recipient_copy", (query) => {
+              query.where(
+                "rcd_id_destinatario",
+                `${process.env.CURRENT_USER_DOCUMENT}`
+              );
+            });
+        })
           .preload("rn_radicado_remitente_to_entity")
           .preload("rn_radicado_destinatario_to_entity")
           .preload("rn_radicado_details_to_recipient_copy")
@@ -1273,7 +1279,7 @@ export default class RadicadoDetailsController {
 
         //if (role !== "ADM_ROL") {
         RadicadoById.where(
-          "dra_id_destinatario",
+          "dra_radicado_por",
           "=",
           `${process.env.CURRENT_USER_DOCUMENT}`
         );
