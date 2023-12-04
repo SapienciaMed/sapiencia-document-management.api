@@ -59,6 +59,7 @@ export default class RadicadoDetailsController {
           "rd.DRA_RADICADO",
           "rd.DRA_TIPO_DOCUMENTO_RADICADO",
           "rd.DRA_FECHA_RADICADO",
+          "rd.DRA_ESTADO_RADICADO",
           "rd.DRA_FECHA_EVACUACION_ENTRADA",
           "rd.DRA_FECHA_EVACUACION_SALIDA",
           "rd.DRA_REFERENCIA",
@@ -122,7 +123,8 @@ export default class RadicadoDetailsController {
           .andWhereRaw(
             `(rd.DRA_FECHA_EVACUACION_ENTRADA >= ? AND rd.DRA_FECHA_EVACUACION_ENTRADA <= ?) AND (rd.DRA_ID_DESTINATARIO = ? OR rcd.RCD_ID_DESTINATARIO = ?)`,
             [start, end, id, id]
-          );
+          )
+          .andWhere("rd.DRA_ESTADO_RADICADO", '=', 'Evacuado')
       }
 
       if (days) {
@@ -131,16 +133,19 @@ export default class RadicadoDetailsController {
           .andWhereRaw(
             `DATE(rd.DRA_FECHA_EVACUACION_ENTRADA) >= ? AND (rd.DRA_ID_DESTINATARIO = ? OR rcd.RCD_ID_DESTINATARIO = ?)`,
             [moment().subtract(days, "days").format("YYYY-MM-DD"), id, id]
-          );
+          )
+          .andWhere("rd.DRA_ESTADO_RADICADO", '=', 'Evacuado');
       }
 
       if (!days && !start) {
         query
           .where("rd.DRA_ID_DESTINATARIO", id)
-          .orWhere("rcd.RCD_ID_DESTINATARIO", id);
+          .andWhere("rd.DRA_ESTADO_RADICADO", '=', 'Evacuado')
+          .orWhere("rcd.RCD_ID_DESTINATARIO", id)
+          .andWhere("rd.DRA_ESTADO_RADICADO", '=', 'Evacuado')
       }
 
-      const results = await query;
+      const results = await query.where("rd.DRA_ESTADO_RADICADO", '=', 'Evacuado');
 
       return response.status(200).json({
         data: results,
@@ -203,6 +208,8 @@ export default class RadicadoDetailsController {
         workdays = workdays.map((item: { PDD_FECHA: string }) =>
           moment(item.PDD_FECHA).format("YYYY-MM-DD HH:mm:ss.SSS")
         );
+
+        console.log('workdays', workdays)
 
         nonworkingdays = await Database.connection("citizen_attention")
           .from("PDD_PARAMETRIZACION_DIAS_DETALLE")
@@ -378,15 +385,17 @@ export default class RadicadoDetailsController {
       const isDefaultWorkday =
         fechaIterativa.weekday >= 1 &&
         fechaIterativa.weekday <= (useWorkDays ? 5 : 7);
+
       const isAdditionalWorkday = workdays.includes(
-        fechaIterativa.toFormat("yyyy-MM-dd")
+        `${fechaIterativa.toFormat("yyyy-MM-dd")} 00:00:00.000`
       );
+
       const isAdditionalNonworkingday = nonworkingdays.includes(
-        fechaIterativa.toFormat("yyyy-MM-dd")
+        `${fechaIterativa.toFormat("yyyy-MM-dd")} 00:00:00.000`
       );
 
       if (
-        (isDefaultWorkday || isAdditionalWorkday) &&
+        (isAdditionalWorkday || isDefaultWorkday) &&
         !isAdditionalNonworkingday
       ) {
         if (
@@ -406,6 +415,7 @@ export default class RadicadoDetailsController {
 
     return minutosTranscurridos;
   }
+
 
   private determineRadicadoState(
     elapsedWorkingTime: number,
