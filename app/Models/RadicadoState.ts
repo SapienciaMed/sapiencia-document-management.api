@@ -78,4 +78,10 @@ export default class RadicadoState extends BaseModel {
     serialize: (value) => value.toFormat("dd/MM/yyyy HH:mm:ss"),
   })
   public er_fecha_cambio: DateTime;
+
+  @column.dateTime({ autoCreate: true })
+  public created_at: DateTime;
+
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  public updated_at: DateTime;
 }
