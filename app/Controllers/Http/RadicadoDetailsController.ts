@@ -59,6 +59,7 @@ export default class RadicadoDetailsController {
           "rd.DRA_RADICADO",
           "rd.DRA_TIPO_DOCUMENTO_RADICADO",
           "rd.DRA_FECHA_RADICADO",
+          "rd.DRA_ESTADO_RADICADO",
           "rd.DRA_FECHA_EVACUACION_ENTRADA",
           "rd.DRA_FECHA_EVACUACION_SALIDA",
           "rd.DRA_REFERENCIA",
@@ -122,7 +123,8 @@ export default class RadicadoDetailsController {
           .andWhereRaw(
             `(rd.DRA_FECHA_EVACUACION_ENTRADA >= ? AND rd.DRA_FECHA_EVACUACION_ENTRADA <= ?) AND (rd.DRA_ID_DESTINATARIO = ? OR rcd.RCD_ID_DESTINATARIO = ?)`,
             [start, end, id, id]
-          );
+          )
+          .andWhere("rd.DRA_ESTADO_RADICADO", '=', 'Evacuado')
       }
 
       if (days) {
@@ -131,16 +133,19 @@ export default class RadicadoDetailsController {
           .andWhereRaw(
             `DATE(rd.DRA_FECHA_EVACUACION_ENTRADA) >= ? AND (rd.DRA_ID_DESTINATARIO = ? OR rcd.RCD_ID_DESTINATARIO = ?)`,
             [moment().subtract(days, "days").format("YYYY-MM-DD"), id, id]
-          );
+          )
+          .andWhere("rd.DRA_ESTADO_RADICADO", '=', 'Evacuado');
       }
 
       if (!days && !start) {
         query
           .where("rd.DRA_ID_DESTINATARIO", id)
-          .orWhere("rcd.RCD_ID_DESTINATARIO", id);
+          .andWhere("rd.DRA_ESTADO_RADICADO", '=', 'Evacuado')
+          .orWhere("rcd.RCD_ID_DESTINATARIO", id)
+          .andWhere("rd.DRA_ESTADO_RADICADO", '=', 'Evacuado')
       }
 
-      const results = await query;
+      const results = await query.where("rd.DRA_ESTADO_RADICADO", '=', 'Evacuado');
 
       return response.status(200).json({
         data: results,
