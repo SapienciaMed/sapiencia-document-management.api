@@ -119,9 +119,9 @@ export default class RadicadoDetailsController {
 
       if (start && end) {
         query
-          .whereNotNull("rd.DRA_FECHA_EVACUACION_ENTRADA")
+          .whereNotNull("rd.DRA_FECHA_EVACUACION_SALIDA")
           .andWhereRaw(
-            `(rd.DRA_FECHA_EVACUACION_ENTRADA >= ? AND rd.DRA_FECHA_EVACUACION_ENTRADA <= ?) AND (rd.DRA_ID_DESTINATARIO = ? OR rcd.RCD_ID_DESTINATARIO = ?)`,
+            `(rd.DRA_FECHA_EVACUACION_SALIDA >= ? AND rd.DRA_FECHA_EVACUACION_SALIDA <= ?) AND (rd.DRA_ID_DESTINATARIO = ? OR rcd.RCD_ID_DESTINATARIO = ?)`,
             [start, end, id, id]
           )
           .andWhere("rd.DRA_ESTADO_RADICADO", '=', 'Evacuado')
@@ -129,9 +129,9 @@ export default class RadicadoDetailsController {
 
       if (days) {
         query
-          .whereNotNull("rd.DRA_FECHA_EVACUACION_ENTRADA")
+          .whereNotNull("rd.DRA_FECHA_EVACUACION_SALIDA")
           .andWhereRaw(
-            `DATE(rd.DRA_FECHA_EVACUACION_ENTRADA) >= ? AND (rd.DRA_ID_DESTINATARIO = ? OR rcd.RCD_ID_DESTINATARIO = ?)`,
+            `DATE(rd.DRA_FECHA_EVACUACION_SALIDA) >= ? AND (rd.DRA_ID_DESTINATARIO = ? OR rcd.RCD_ID_DESTINATARIO = ?)`,
             [moment().subtract(days, "days").format("YYYY-MM-DD"), id, id]
           )
           .andWhere("rd.DRA_ESTADO_RADICADO", '=', 'Evacuado');
