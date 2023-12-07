@@ -146,21 +146,19 @@ Route.group(() => {
     "/update/:id",
     "GeneralConfigurationController.updateGeneralConfiguration"
   );
-
-
 })
   .prefix("/api/v1/general-configuration")
   .middleware("auth");
 
 Route.group(() => {
-Route.get(
-  "/get-radicado-code/:type",
-  "GeneralConfigurationController.getRadicadoCode"
-)
-Route.put(
-  "/update-radicado-code/:type",
-  "GeneralConfigurationController.updateRadicadoCode"
-)
+  Route.get(
+    "/get-radicado-code/:type",
+    "GeneralConfigurationController.getRadicadoCode"
+  );
+  Route.put(
+    "/update-radicado-code/:type",
+    "GeneralConfigurationController.updateRadicadoCode"
+  );
 })
   .prefix("/api/v1/general-configuration")
   .middleware("authPortal");
@@ -245,3 +243,10 @@ Route.group(() => {
 })
   .prefix("/api/v1/document-management/gestion")
   .middleware("auth:PROCESOS_MASIVOS");
+
+//Subject
+Route.group(() => {
+  Route.resource("/subject", "SubjectsController").apiOnly();
+  Route.get("/:subjectId/document", "SubjectsController.subjectDocumentById");
+}).prefix("/api/v1/document-management/subject");
+//.middleware("auth");
