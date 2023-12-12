@@ -1,5 +1,6 @@
 import type { HttpContextContract } from "@ioc:Adonis/Core/HttpContext";
 import BasicDocumentInformation from "App/Models/BasicDocumentInformation";
+import Subject from "App/Models/Subject";
 
 export default class BasicDocumentInformationsController {
   public async index({ response }: HttpContextContract) {
@@ -28,33 +29,62 @@ export default class BasicDocumentInformationsController {
   }
 
   public async searchByNameAndCode({ request, response }: HttpContextContract) {
-    const name = request.input('nombre');
-    const code = request.input('codigo');
+    const name = request.input("nombre");
+    const code = request.input("codigo");
 
     try {
-      const query = BasicDocumentInformation.query();
+      const query = Subject.query();
 
       if (name) {
-        query.orWhere('INF_NOMBRE_ASUNTO', 'LIKE', `%${name}%`);
+        query.orWhere("ras_nombre_asunto", "LIKE", `%${name}%`);
       }
 
       if (code) {
-        query.orWhere('INF_CODIGO_ASUNTO', 'LIKE', `%${code}%`);
+        query.orWhere("ras_id", "LIKE", `%${code}%`);
       }
 
-      const subjects = await query.select('*');
+      const subjects = await query.select("*");
 
       return response.status(200).json({
         data: subjects,
         message: { success: "Peticion terminada exitosamente" },
       });
     } catch (err) {
-      console.log(err)
+      console.log(err);
       return response
         .status(500)
         .json({ data: null, message: { error: "Ups, hubo un error" } });
     }
   }
+
+  // public async searchByNameAndCode({ request, response }: HttpContextContract) {
+  //   const name = request.input('nombre');
+  //   const code = request.input('codigo');
+
+  //   try {
+  //     const query = BasicDocumentInformation.query();
+
+  //     if (name) {
+  //       query.orWhere('INF_NOMBRE_ASUNTO', 'LIKE', `%${name}%`);
+  //     }
+
+  //     if (code) {
+  //       query.orWhere('INF_CODIGO_ASUNTO', 'LIKE', `%${code}%`);
+  //     }
+
+  //     const subjects = await query.select('*');
+
+  //     return response.status(200).json({
+  //       data: subjects,
+  //       message: { success: "Peticion terminada exitosamente" },
+  //     });
+  //   } catch (err) {
+  //     console.log(err)
+  //     return response
+  //       .status(500)
+  //       .json({ data: null, message: { error: "Ups, hubo un error" } });
+  //   }
+  // }
 
   public async update({}: HttpContextContract) {}
 

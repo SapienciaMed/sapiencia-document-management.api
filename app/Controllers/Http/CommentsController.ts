@@ -78,7 +78,7 @@ export default class CommentsController {
 
   public async show({ request, response }: HttpContextContract) {
     const { id } = request.params();
-    console.log(process.env.CURRENT_USER_DOCUMENT);
+
     try {
       const comments = await Comment.query().where("inf_radicado", id);
 
