@@ -1028,9 +1028,16 @@ export default class RadicadoDetailsController {
         "DRA_ESTADO",
       ]);
 
+      const created_at = moment()
+      .tz(zonaHorariaColombia)
+      .format("YYYY-MM-DD HH:mm:ss.SSS");
+    const updated_at = moment()
+      .tz(zonaHorariaColombia)
+      .format("YYYY-MM-DD HH:mm:ss.SSS");
+
       await Database.from("radicado_details")
         .where("DRA_RADICADO", numRadicado)
-        .update(data);
+        .update({ ...data, created_at, updated_at });
 
       const copiesData = request.input("copies", []).map((copy) => ({
         ...copy,
