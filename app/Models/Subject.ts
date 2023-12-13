@@ -14,7 +14,7 @@ export default class Subject extends BaseModel {
   public ras_tiempo_respuesta: number;
 
   @column({ columnName: "RAS_UNIDAD" })
-  public ras_unidad: number;
+  public ras_unidad: string;
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime;

@@ -1221,7 +1221,7 @@ export default class RadicadoDetailsController {
           .preload("rn_radicado_remitente_to_entity")
           .preload("rn_radicado_destinatario_to_entity")
           .preload("rn_radicado_details_to_recipient_copy")
-          .preload("rn_radicado_to_asunto")
+          .preload("rn_radicado_to_subject")
           .where("dra_estado_radicado", "Pendiente")
           .select("*")
           .limit(100);
@@ -1234,14 +1234,14 @@ export default class RadicadoDetailsController {
             useWorkDays
           );
 
-          if (rad.rn_radicado_to_asunto.inf_unidad == "Días") {
+          if (rad.rn_radicado_to_subject.ras_unidad == "Días") {
             const result = this.convertMinutesToDays(tiempoTranscurrido);
             tiempoTranscurrido = result.days;
           }
 
           const estado = this.determineRadicadoState(
             tiempoTranscurrido,
-            rad.rn_radicado_to_asunto.inf_timepo_respuesta as any
+            rad.rn_radicado_to_subject.ras_tiempo_respuesta as any
           );
 
           rad.dra_estado = estado;
@@ -1305,7 +1305,9 @@ export default class RadicadoDetailsController {
           "rn_radicado_remitente_to_entity"
         )
           .preload("rn_radicado_destinatario_to_entity")
-          .preload("rn_radicado_to_asunto")
+          .preload("rn_radicado_to_asunto") //eliminar relacion vieja
+          .preload("rn_radicado_to_subject")
+          .preload("rn_radicado_to_subjectDocument")
           .select("*")
           .limit(100);
 
