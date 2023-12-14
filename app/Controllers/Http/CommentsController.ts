@@ -3,7 +3,8 @@ import Database from "@ioc:Adonis/Lucid/Database";
 import { EResponseCodes } from "App/Constants/ResponseCodesEnum";
 import Comment from "App/Models/Comment";
 import { ApiResponse } from "App/Utils/ApiResponses";
-import moment from "moment";
+import { DateTime } from "luxon";
+import moment, { now } from "moment";
 
 export default class CommentsController {
   public async index({}: HttpContextContract) {}
@@ -18,6 +19,7 @@ export default class CommentsController {
       comment.fill({
         inf_radicado: request.body().dra_radicado,
         inf_comentario: request.body().comentario,
+        inf_fecha_comentario: DateTime.fromMillis(Date.now()),
       });
       await comment.save();
 
