@@ -124,7 +124,7 @@ export default class RadicadoDetailsController {
             `(rd.DRA_FECHA_EVACUACION_SALIDA >= ? AND rd.DRA_FECHA_EVACUACION_SALIDA <= ?) AND (rd.DRA_ID_DESTINATARIO = ? OR rcd.RCD_ID_DESTINATARIO = ?)`,
             [start, end, id, id]
           )
-          .andWhere("rd.DRA_ESTADO_RADICADO", '=', 'Evacuado')
+          .andWhere("rd.DRA_ESTADO_RADICADO", "=", "Evacuado");
       }
 
       if (days) {
@@ -134,18 +134,22 @@ export default class RadicadoDetailsController {
             `DATE(rd.DRA_FECHA_EVACUACION_SALIDA) >= ? AND (rd.DRA_ID_DESTINATARIO = ? OR rcd.RCD_ID_DESTINATARIO = ?)`,
             [moment().subtract(days, "days").format("YYYY-MM-DD"), id, id]
           )
-          .andWhere("rd.DRA_ESTADO_RADICADO", '=', 'Evacuado');
+          .andWhere("rd.DRA_ESTADO_RADICADO", "=", "Evacuado");
       }
 
       if (!days && !start) {
         query
           .where("rd.DRA_ID_DESTINATARIO", id)
-          .andWhere("rd.DRA_ESTADO_RADICADO", '=', 'Evacuado')
+          .andWhere("rd.DRA_ESTADO_RADICADO", "=", "Evacuado")
           .orWhere("rcd.RCD_ID_DESTINATARIO", id)
-          .andWhere("rd.DRA_ESTADO_RADICADO", '=', 'Evacuado')
+          .andWhere("rd.DRA_ESTADO_RADICADO", "=", "Evacuado");
       }
 
-      const results = await query.where("rd.DRA_ESTADO_RADICADO", '=', 'Evacuado');
+      const results = await query.where(
+        "rd.DRA_ESTADO_RADICADO",
+        "=",
+        "Evacuado"
+      );
 
       return response.status(200).json({
         data: results,
@@ -189,9 +193,9 @@ export default class RadicadoDetailsController {
           "ib.INF_CODIGO_ASUNTO"
         )
         .where("rd.DRA_ID_DESTINATARIO", id)
-        .andWhere("rd.DRA_ESTADO_RADICADO", '!=', 'Evacuado')
+        .andWhere("rd.DRA_ESTADO_RADICADO", "!=", "Evacuado")
         .orWhere("rcd.RCD_ID_DESTINATARIO", id)
-        .andWhere("rd.DRA_ESTADO_RADICADO", '!=', 'Evacuado');
+        .andWhere("rd.DRA_ESTADO_RADICADO", "!=", "Evacuado");
 
       rads = await rads.select(
         "rd.created_at",
@@ -208,8 +212,6 @@ export default class RadicadoDetailsController {
         workdays = workdays.map((item: { PDD_FECHA: string }) =>
           moment(item.PDD_FECHA).format("YYYY-MM-DD HH:mm:ss.SSS")
         );
-
-        console.log('workdays', workdays)
 
         nonworkingdays = await Database.connection("citizen_attention")
           .from("PDD_PARAMETRIZACION_DIAS_DETALLE")
@@ -283,7 +285,7 @@ export default class RadicadoDetailsController {
           "ib.INF_CODIGO_ASUNTO"
         )
         .where("rd.DRA_CREADO_POR", id)
-        .andWhere("rd.DRA_ESTADO_RADICADO", '!=', 'Evacuado');
+        .andWhere("rd.DRA_ESTADO_RADICADO", "!=", "Evacuado");
 
       rads = await rads.select(
         "rd.created_at",
@@ -415,7 +417,6 @@ export default class RadicadoDetailsController {
 
     return minutosTranscurridos;
   }
-
 
   private determineRadicadoState(
     elapsedWorkingTime: number,
@@ -894,9 +895,7 @@ export default class RadicadoDetailsController {
       }
     } catch (error) {
       console.log(error);
-      return response
-        .status(500)
-        .json({ error: "Ocurrió un error al guardar el radicado" });
+      return response.status(500).json({ error: error.message });
     }
   }
 
@@ -908,76 +907,76 @@ export default class RadicadoDetailsController {
       let copies: any = [];
 
       const radicado = await Database.from("radicado_details as rd")
-    .leftJoin(
-      "INF_INFORMACION_BASICA as ib",
-      "rd.DRA_CODIGO_ASUNTO",
-      "ib.INF_CODIGO_ASUNTO"
-    )
-    .leftJoin(
-      "ENT_ENTIDAD as ent1",
-      "rd.DRA_ID_DESTINATARIO",
-      "ent1.ENT_NUMERO_IDENTIDAD"
-    )
-    .where("rd.DRA_CREADO_POR", userId)
-    .where("rd.DRA_ESTADO", "INCOMPLETO")
-    .where("rd.DRA_TIPO_DOCUMENTO_RADICADO", tipo)
-    .select([
-      "rd.DRA_CODIGO",
-      "rd.DRA_CODIGO_ASUNTO",
-      "rd.DRA_CREADO_POR",
-      "rd.DRA_ESTADO",
-      "rd.DRA_ESTADO_RADICADO",
-      "rd.DRA_FECHA_EVACUACION_ENTRADA",
-      "rd.DRA_FECHA_EVACUACION_SALIDA",
-      "rd.DRA_FECHA_RADICADO",
-      "rd.DRA_ID_DESTINATARIO",
-      "rd.DRA_ID_REMITENTE",
-      "rd.DRA_MOVIMIENTO",
-      "rd.DRA_NOMBRE_RADICADOR",
-      "rd.DRA_NUM_ANEXOS",
-      "rd.DRA_NUM_CAJAS",
-      "rd.DRA_NUM_FOLIOS",
-      "rd.DRA_OBSERVACION",
-      "rd.DRA_OPCIONES_RESPUESTA",
-      "rd.DRA_PRIORIDAD",
-      "rd.DRA_PRIORIDAD_ASUNTO",
-      "rd.DRA_RADICADO",
-      "rd.DRA_RADICADO_ORIGEN",
-      "rd.DRA_RADICADO_POR",
-      "rd.DRA_REFERENCIA",
-      "rd.DRA_TIPO_ASUNTO",
-      "rd.DRA_TIPO_DOCUMENTO_RADICADO",
-      "rd.DRA_TIPO_INFO",
-      "rd.DRA_TIPO_RADICADO",
-      "rd.DRA_USUARIO",
-      "ent1.ENT_ABREVIATURA",
-      "ent1.ENT_APELLIDOS",
-      "ent1.ENT_CODIGO",
-      "ent1.ENT_CONTACTO_DOS",
-      "ent1.ENT_CONTACTO_UNO",
-      "ent1.ENT_DEPARTAMENTO",
-      "ent1.ENT_DIRECCION",
-      "ent1.ENT_EMAIL",
-      "ent1.ENT_ESTADO",
-      "ent1.ENT_MUNICIPIO",
-      "ent1.ENT_NOMBRES",
-      "ent1.ENT_NUMERO_IDENTIDAD",
-      "ent1.ENT_OBSERVACIONES",
-      "ent1.ENT_PAIS",
-      "ent1.ENT_RAZON_SOCIAL",
-      "ent1.ENT_TIPO_DOCUMENTO",
-      "ent1.ENT_TIPO_ENTIDAD",
-      "ib.INF_CODIGO",
-      "ib.INF_CODIGO_ASUNTO",
-      "ib.INF_NOMBRE_ASUNTO",
-      "ib.INF_PRIORIDAD",
-      "ib.INF_TIMEPO_RESPUESTA",
-      "ib.INF_TIPO",
-      "ib.INF_UNIDAD",
-      "rd.created_at",
-      "rd.updated_at"
-    ])
-    .first();
+        .leftJoin(
+          "INF_INFORMACION_BASICA as ib",
+          "rd.DRA_CODIGO_ASUNTO",
+          "ib.INF_CODIGO_ASUNTO"
+        )
+        .leftJoin(
+          "ENT_ENTIDAD as ent1",
+          "rd.DRA_ID_DESTINATARIO",
+          "ent1.ENT_NUMERO_IDENTIDAD"
+        )
+        .where("rd.DRA_CREADO_POR", userId)
+        .where("rd.DRA_ESTADO", "INCOMPLETO")
+        .where("rd.DRA_TIPO_DOCUMENTO_RADICADO", tipo)
+        .select([
+          "rd.DRA_CODIGO",
+          "rd.DRA_CODIGO_ASUNTO",
+          "rd.DRA_CREADO_POR",
+          "rd.DRA_ESTADO",
+          "rd.DRA_ESTADO_RADICADO",
+          "rd.DRA_FECHA_EVACUACION_ENTRADA",
+          "rd.DRA_FECHA_EVACUACION_SALIDA",
+          "rd.DRA_FECHA_RADICADO",
+          "rd.DRA_ID_DESTINATARIO",
+          "rd.DRA_ID_REMITENTE",
+          "rd.DRA_MOVIMIENTO",
+          "rd.DRA_NOMBRE_RADICADOR",
+          "rd.DRA_NUM_ANEXOS",
+          "rd.DRA_NUM_CAJAS",
+          "rd.DRA_NUM_FOLIOS",
+          "rd.DRA_OBSERVACION",
+          "rd.DRA_OPCIONES_RESPUESTA",
+          "rd.DRA_PRIORIDAD",
+          "rd.DRA_PRIORIDAD_ASUNTO",
+          "rd.DRA_RADICADO",
+          "rd.DRA_RADICADO_ORIGEN",
+          "rd.DRA_RADICADO_POR",
+          "rd.DRA_REFERENCIA",
+          "rd.DRA_TIPO_ASUNTO",
+          "rd.DRA_TIPO_DOCUMENTO_RADICADO",
+          "rd.DRA_TIPO_INFO",
+          "rd.DRA_TIPO_RADICADO",
+          "rd.DRA_USUARIO",
+          "ent1.ENT_ABREVIATURA",
+          "ent1.ENT_APELLIDOS",
+          "ent1.ENT_CODIGO",
+          "ent1.ENT_CONTACTO_DOS",
+          "ent1.ENT_CONTACTO_UNO",
+          "ent1.ENT_DEPARTAMENTO",
+          "ent1.ENT_DIRECCION",
+          "ent1.ENT_EMAIL",
+          "ent1.ENT_ESTADO",
+          "ent1.ENT_MUNICIPIO",
+          "ent1.ENT_NOMBRES",
+          "ent1.ENT_NUMERO_IDENTIDAD",
+          "ent1.ENT_OBSERVACIONES",
+          "ent1.ENT_PAIS",
+          "ent1.ENT_RAZON_SOCIAL",
+          "ent1.ENT_TIPO_DOCUMENTO",
+          "ent1.ENT_TIPO_ENTIDAD",
+          "ib.INF_CODIGO",
+          "ib.INF_CODIGO_ASUNTO",
+          "ib.INF_NOMBRE_ASUNTO",
+          "ib.INF_PRIORIDAD",
+          "ib.INF_TIMEPO_RESPUESTA",
+          "ib.INF_TIPO",
+          "ib.INF_UNIDAD",
+          "rd.created_at",
+          "rd.updated_at",
+        ])
+        .first();
       if (!radicado) {
         return response.json({
           radicado: {},
@@ -1029,9 +1028,16 @@ export default class RadicadoDetailsController {
         "DRA_ESTADO",
       ]);
 
+      const created_at = moment()
+      .tz(zonaHorariaColombia)
+      .format("YYYY-MM-DD HH:mm:ss.SSS");
+    const updated_at = moment()
+      .tz(zonaHorariaColombia)
+      .format("YYYY-MM-DD HH:mm:ss.SSS");
+
       await Database.from("radicado_details")
         .where("DRA_RADICADO", numRadicado)
-        .update(data);
+        .update({ ...data, created_at, updated_at });
 
       const copiesData = request.input("copies", []).map((copy) => ({
         ...copy,
@@ -1215,7 +1221,7 @@ export default class RadicadoDetailsController {
           .preload("rn_radicado_remitente_to_entity")
           .preload("rn_radicado_destinatario_to_entity")
           .preload("rn_radicado_details_to_recipient_copy")
-          .preload("rn_radicado_to_asunto")
+          .preload("rn_radicado_to_subject")
           .where("dra_estado_radicado", "Pendiente")
           .select("*")
           .limit(100);
@@ -1228,14 +1234,14 @@ export default class RadicadoDetailsController {
             useWorkDays
           );
 
-          if (rad.rn_radicado_to_asunto.inf_unidad == "Días") {
+          if (rad.rn_radicado_to_subject.ras_unidad == "Días") {
             const result = this.convertMinutesToDays(tiempoTranscurrido);
             tiempoTranscurrido = result.days;
           }
 
           const estado = this.determineRadicadoState(
             tiempoTranscurrido,
-            rad.rn_radicado_to_asunto.inf_timepo_respuesta as any
+            rad.rn_radicado_to_subject.ras_tiempo_respuesta as any
           );
 
           rad.dra_estado = estado;
@@ -1299,7 +1305,9 @@ export default class RadicadoDetailsController {
           "rn_radicado_remitente_to_entity"
         )
           .preload("rn_radicado_destinatario_to_entity")
-          .preload("rn_radicado_to_asunto")
+          .preload("rn_radicado_to_asunto") //eliminar relacion vieja
+          .preload("rn_radicado_to_subject")
+          .preload("rn_radicado_to_subjectDocument")
           .select("*")
           .limit(100);
 

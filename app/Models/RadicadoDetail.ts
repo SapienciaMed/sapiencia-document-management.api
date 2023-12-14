@@ -11,6 +11,8 @@ import RelatedAnswer from "./RelatedAnswer";
 import Entity from "./Entity";
 import BasicDocumentInformation from "./BasicDocumentInformation";
 import RecipientCopy from "./RecipientCopy";
+import Subject from "./Subject";
+import SubjectDocumentType from "./SubjectDocumentType";
 
 export default class RadicadoDetail extends BaseModel {
   public static table = "radicado_details";
@@ -125,9 +127,22 @@ export default class RadicadoDetail extends BaseModel {
   })
   public rn_radicado_destinatario_to_entity: HasOne<typeof Entity>;
 
+  //Eliminar esta relacion
   @hasOne(() => BasicDocumentInformation, {
     localKey: "dra_codigo_asunto",
     foreignKey: "inf_codigo_asunto",
   })
   public rn_radicado_to_asunto: HasOne<typeof BasicDocumentInformation>;
+
+  @hasOne(() => Subject, {
+    localKey: "dra_codigo_asunto",
+    foreignKey: "ras_id",
+  })
+  public rn_radicado_to_subject: HasOne<typeof Subject>;
+
+  @hasOne(() => SubjectDocumentType, {
+    localKey: "dra_tipo_asunto",
+    foreignKey: "rta_id",
+  })
+  public rn_radicado_to_subjectDocument: HasOne<typeof SubjectDocumentType>;
 }
