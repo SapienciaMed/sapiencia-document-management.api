@@ -576,7 +576,8 @@ export default class RadicadoDetailsController {
           "rn_radicado_remitente_to_entity"
         )
           .preload("rn_radicado_destinatario_to_entity")
-          .preload("rn_radicado_to_asunto")
+          .preload("rn_radicado_to_subject")
+          .preload("rn_radicado_to_subjectDocument")
           .select("*")
           .limit(100);
 
