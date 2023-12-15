@@ -1225,6 +1225,7 @@ export default class RadicadoDetailsController {
           .preload("rn_radicado_destinatario_to_entity")
           .preload("rn_radicado_details_to_recipient_copy")
           .preload("rn_radicado_to_subject")
+          .preload("rn_radicado_to_subjectDocument")
           .where("dra_estado_radicado", "Pendiente")
           .select("*")
           .limit(100);
