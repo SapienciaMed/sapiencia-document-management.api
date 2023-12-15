@@ -654,6 +654,7 @@ export default class RadicadoDetailsController {
 
       const data = await RadicadoById.preload("rn_radicado_remitente_to_entity")
         .preload("rn_radicado_destinatario_to_entity")
+        .preload("rn_radicado_to_subjectDocument")
         .select("*")
         .where("dra_estado_radicado", "Pendiente")
         .limit(100);
@@ -692,6 +693,7 @@ export default class RadicadoDetailsController {
 
       const data = await RadicadoById.preload("rn_radicado_remitente_to_entity")
         .preload("rn_radicado_destinatario_to_entity")
+        .preload("rn_radicado_to_subjectDocument")
         .select("*")
         .where("dra_estado_radicado", "Pendiente")
         .limit(100);
