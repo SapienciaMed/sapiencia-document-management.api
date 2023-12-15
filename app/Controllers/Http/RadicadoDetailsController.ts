@@ -576,7 +576,8 @@ export default class RadicadoDetailsController {
           "rn_radicado_remitente_to_entity"
         )
           .preload("rn_radicado_destinatario_to_entity")
-          .preload("rn_radicado_to_asunto")
+          .preload("rn_radicado_to_subject")
+          .preload("rn_radicado_to_subjectDocument")
           .select("*")
           .limit(100);
 
@@ -653,6 +654,7 @@ export default class RadicadoDetailsController {
 
       const data = await RadicadoById.preload("rn_radicado_remitente_to_entity")
         .preload("rn_radicado_destinatario_to_entity")
+        .preload("rn_radicado_to_subjectDocument")
         .select("*")
         .where("dra_estado_radicado", "Pendiente")
         .limit(100);
@@ -691,6 +693,7 @@ export default class RadicadoDetailsController {
 
       const data = await RadicadoById.preload("rn_radicado_remitente_to_entity")
         .preload("rn_radicado_destinatario_to_entity")
+        .preload("rn_radicado_to_subjectDocument")
         .select("*")
         .where("dra_estado_radicado", "Pendiente")
         .limit(100);
@@ -1222,6 +1225,7 @@ export default class RadicadoDetailsController {
           .preload("rn_radicado_destinatario_to_entity")
           .preload("rn_radicado_details_to_recipient_copy")
           .preload("rn_radicado_to_subject")
+          .preload("rn_radicado_to_subjectDocument")
           .where("dra_estado_radicado", "Pendiente")
           .select("*")
           .limit(100);
