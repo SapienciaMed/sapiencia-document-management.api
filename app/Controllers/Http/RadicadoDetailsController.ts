@@ -55,67 +55,73 @@ export default class RadicadoDetailsController {
 
     try {
       const query = Database.from("radicado_details as rd")
-        .select(
-          "rd.DRA_RADICADO",
-          "rd.DRA_TIPO_DOCUMENTO_RADICADO",
-          "rd.DRA_FECHA_RADICADO",
-          "rd.DRA_ESTADO_RADICADO",
-          "rd.DRA_FECHA_EVACUACION_ENTRADA",
-          "rd.DRA_FECHA_EVACUACION_SALIDA",
-          "rd.DRA_REFERENCIA",
-          "rd.DRA_RADICADO_ORIGEN",
-          "rd.DRA_PRIORIDAD",
-          "rd.created_at",
-          Database.raw(`
-          CASE
-            WHEN ent1.ENT_TIPO_DOCUMENTO = 'NIT' THEN ent1.ENT_RAZON_SOCIAL
-            ELSE CONCAT(ent1.ENT_NOMBRES, ' ', ent1.ENT_APELLIDOS)
-          END as NombresORazonSocial_DestinatarioOriginal
-        `),
-          Database.raw(`
-          CASE
-            WHEN ent2.ENT_TIPO_DOCUMENTO = 'NIT' THEN ent2.ENT_RAZON_SOCIAL
-            ELSE CONCAT(ent2.ENT_NOMBRES, ' ', ent2.ENT_APELLIDOS)
-          END as NombresORazonSocial_DestinatarioCopia
-        `),
-          Database.raw(`
-          CASE
-            WHEN ent3.ENT_TIPO_DOCUMENTO = 'NIT' THEN ent3.ENT_RAZON_SOCIAL
-            ELSE CONCAT(ent3.ENT_NOMBRES, ' ', ent3.ENT_APELLIDOS)
-          END as NombresORazonSocial_Remitente
-        `),
-          Database.raw(
-            `
-              CASE
-                WHEN ent1.ENT_NUMERO_IDENTIDAD = ? THEN 'Original'
-                WHEN ent1.ENT_NUMERO_IDENTIDAD = ? THEN 'Original'
-                WHEN ent1.ENT_NUMERO_IDENTIDAD = ? THEN 'Original'
-                ELSE 'Copia'
-              END as clase
-            `,
-            [id, id, id]
-          )
+      .select(
+        "rd.DRA_RADICADO",
+        "rd.DRA_TIPO_DOCUMENTO_RADICADO",
+        "rd.DRA_FECHA_RADICADO",
+        "rd.DRA_ESTADO_RADICADO",
+        "rd.DRA_FECHA_EVACUACION_ENTRADA",
+        "rd.DRA_FECHA_EVACUACION_SALIDA",
+        "rd.DRA_REFERENCIA",
+        "rd.DRA_RADICADO_ORIGEN",
+        "rd.DRA_PRIORIDAD",
+        "rd.created_at",
+        "rta.RTA_DESCRIPCION",
+        Database.raw(`
+        CASE
+          WHEN ent1.ENT_TIPO_DOCUMENTO = 'NIT' THEN ent1.ENT_RAZON_SOCIAL
+          ELSE CONCAT(ent1.ENT_NOMBRES, ' ', ent1.ENT_APELLIDOS)
+        END as NombresORazonSocial_DestinatarioOriginal
+      `),
+        Database.raw(`
+        CASE
+          WHEN ent2.ENT_TIPO_DOCUMENTO = 'NIT' THEN ent2.ENT_RAZON_SOCIAL
+          ELSE CONCAT(ent2.ENT_NOMBRES, ' ', ent2.ENT_APELLIDOS)
+        END as NombresORazonSocial_DestinatarioCopia
+      `),
+        Database.raw(`
+        CASE
+          WHEN ent3.ENT_TIPO_DOCUMENTO = 'NIT' THEN ent3.ENT_RAZON_SOCIAL
+          ELSE CONCAT(ent3.ENT_NOMBRES, ' ', ent3.ENT_APELLIDOS)
+        END as NombresORazonSocial_Remitente
+      `),
+        Database.raw(
+          `
+            CASE
+              WHEN ent1.ENT_NUMERO_IDENTIDAD = ? THEN 'Original'
+              WHEN ent1.ENT_NUMERO_IDENTIDAD = ? THEN 'Original'
+              WHEN ent1.ENT_NUMERO_IDENTIDAD = ? THEN 'Original'
+              ELSE 'Copia'
+            END as clase
+          `,
+          [id, id, id]
         )
-        .leftJoin(
-          "ENT_ENTIDAD as ent1",
-          "rd.DRA_ID_DESTINATARIO",
-          "ent1.ENT_NUMERO_IDENTIDAD"
-        )
-        .leftJoin(
-          "RCD_RADICADO_COPIAS_DESTINATARIO as rcd",
-          "rd.DRA_RADICADO",
-          "rcd.RCD_RADICADO"
-        )
-        .leftJoin(
-          "ENT_ENTIDAD as ent2",
-          "rcd.RCD_ID_DESTINATARIO",
-          "ent2.ENT_NUMERO_IDENTIDAD"
-        )
-        .leftJoin(
-          "ENT_ENTIDAD as ent3",
-          "rd.DRA_ID_REMITENTE",
-          "ent3.ENT_NUMERO_IDENTIDAD"
-        );
+      )
+      .leftJoin(
+        "ENT_ENTIDAD as ent1",
+        "rd.DRA_ID_DESTINATARIO",
+        "ent1.ENT_NUMERO_IDENTIDAD"
+      )
+      .leftJoin(
+        "RCD_RADICADO_COPIAS_DESTINATARIO as rcd",
+        "rd.DRA_RADICADO",
+        "rcd.RCD_RADICADO"
+      )
+      .leftJoin(
+        "ENT_ENTIDAD as ent2",
+        "rcd.RCD_ID_DESTINATARIO",
+        "ent2.ENT_NUMERO_IDENTIDAD"
+      )
+      .leftJoin(
+        "RTA_TIPO_DOCUMENTOS as rta",
+        "rd.DRA_TIPO_ASUNTO",
+        "rta.RTA_ID"
+      )
+      .leftJoin(
+        "ENT_ENTIDAD as ent3",
+        "rd.DRA_ID_REMITENTE",
+        "ent3.ENT_NUMERO_IDENTIDAD"
+      );
 
       if (start && end) {
         query
