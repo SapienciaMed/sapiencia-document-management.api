@@ -4,7 +4,7 @@ import { EResponseCodes } from "App/Constants/ResponseCodesEnum";
 import Comment from "App/Models/Comment";
 import { ApiResponse } from "App/Utils/ApiResponses";
 import { DateTime } from "luxon";
-import moment, { now } from "moment";
+import moment from "moment";
 
 export default class CommentsController {
   public async index({}: HttpContextContract) {}
