@@ -248,5 +248,4 @@ Route.group(() => {
 Route.group(() => {
   Route.get("/:subjectId/document", "SubjectsController.subjectDocumentById");
   Route.resource("/subject", "SubjectsController").apiOnly();
-}).prefix("/api/v1/document-management/subject");
-//.middleware("auth");
+}).prefix("/api/v1/document-management/subject").middleware("auth");
