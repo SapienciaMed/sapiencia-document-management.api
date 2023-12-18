@@ -26,7 +26,7 @@ export default class extends BaseSchema {
         .comment("codigo usuario que crea el radicado");
       table.string("ER_NOMBRE_RADICADOR", 100).notNullable();
       table.string("ER_ID_REMITENTE", 30).notNullable();
-      table.integer("ER_CODIGO_ASUNTO").unsigned().notNullable();
+      table.string("ER_CODIGO_ASUNTO", 20).notNullable();
       table.integer("ER_TIPO_ASUNTO").unsigned().notNullable();
       table.integer("ER_PRIORIDAD_ASUNTO").unsigned().notNullable();
       table.string("ER_ID_DESTINATARIO", 30).notNullable();

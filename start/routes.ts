@@ -242,7 +242,7 @@ Route.group(() => {
   Route.resource("/processes-massive", "MassiveProcessesController").apiOnly();
 })
   .prefix("/api/v1/document-management/gestion")
-  .middleware("auth:PROCESOS_MASIVOS");
+  .middleware("auth:PROCESOS_MASIVOS,EVACUAR");
 
 //Subject
 Route.group(() => {
