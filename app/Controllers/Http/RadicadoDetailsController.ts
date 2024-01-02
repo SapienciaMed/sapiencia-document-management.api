@@ -187,27 +187,50 @@ export default class RadicadoDetailsController {
           ? cgeConfiguracion.CGE_DIAS_HABILES
           : false;
 
-      let rads: any = Database.from("radicado_details as rd")
-        .leftJoin(
-          "RCD_RADICADO_COPIAS_DESTINATARIO as rcd",
-          "rd.DRA_RADICADO",
-          "rcd.RCD_RADICADO"
-        )
-        .leftJoin(
-          "INF_INFORMACION_BASICA as ib",
-          "rd.DRA_CODIGO_ASUNTO",
-          "ib.INF_CODIGO_ASUNTO"
-        )
-        .where("rd.DRA_ID_DESTINATARIO", id)
-        .andWhere("rd.DRA_ESTADO_RADICADO", "!=", "Evacuado")
-        .orWhere("rcd.RCD_ID_DESTINATARIO", id)
-        .andWhere("rd.DRA_ESTADO_RADICADO", "!=", "Evacuado");
+      // let rads: any = Database.from("radicado_details as rd")
+      //   .leftJoin(
+      //     "RCD_RADICADO_COPIAS_DESTINATARIO as rcd",
+      //     "rd.DRA_RADICADO",
+      //     "rcd.RCD_RADICADO"
+      //   )
+      //   .leftJoin(
+      //     "INF_INFORMACION_BASICA as ib",
+      //     "rd.DRA_CODIGO_ASUNTO",
+      //     "ib.INF_CODIGO_ASUNTO"
+      //   )
+      //   .where("rd.DRA_ID_DESTINATARIO", id)
+      //   .andWhere("rd.DRA_ESTADO_RADICADO", "!=", "Evacuado")
+      //   .orWhere("rcd.RCD_ID_DESTINATARIO", id)
+      //   .andWhere("rd.DRA_ESTADO_RADICADO", "!=", "Evacuado");
 
-      rads = await rads.select(
-        "rd.created_at",
-        "ib.INF_TIMEPO_RESPUESTA",
-        "ib.INF_UNIDAD"
-      );
+      // rads = await rads.select(
+      //   "rd.created_at",
+      //   "ib.INF_TIMEPO_RESPUESTA",
+      //   "ib.INF_UNIDAD"
+      // );
+
+      const RadicadoById = RadicadoDetail.query();
+        const rads = await RadicadoById.where((builder) => {
+          builder
+            .where(
+              "dra_id_destinatario",
+              `${id}`
+            )
+            .orWhereHas("rn_radicado_details_to_recipient_copy", (query) => {
+              query.where(
+                "rcd_id_destinatario",
+                `${id}`
+              );
+            });
+        })
+        .preload("rn_radicado_remitente_to_entity")
+        .preload("rn_radicado_destinatario_to_entity")
+        .preload("rn_radicado_details_to_recipient_copy")
+        .preload("rn_radicado_to_subject")
+        .preload("rn_radicado_to_subjectDocument")
+        .where("dra_estado_radicado", "Pendiente")
+        .select("*")
+        .limit(100);
 
       if (useWorkDays) {
         workdays = await Database.connection("citizen_attention")
@@ -238,6 +261,7 @@ export default class RadicadoDetailsController {
       };
 
       for (const rad of rads) {
+
         let tiempoTranscurrido = this.calcularTiempoTranscurrido(
           rad.created_at,
           workdays,
@@ -245,15 +269,18 @@ export default class RadicadoDetailsController {
           useWorkDays
         );
 
-        if (rad.INF_UNIDAD === "Días") {
+        if (rad.rn_radicado_to_subject.ras_unidad == "Días") {
           const result = this.convertMinutesToDays(tiempoTranscurrido);
           tiempoTranscurrido = result.days;
         }
 
         const estado = this.determineRadicadoState(
           tiempoTranscurrido,
-          rad.INF_TIMEPO_RESPUESTA
+          rad.rn_radicado_to_subject.ras_tiempo_respuesta as any
         );
+
+        rad.dra_estado = estado;
+
         responseObj[estado] += 1;
         responseObj.total++;
       }
@@ -284,20 +311,28 @@ export default class RadicadoDetailsController {
           ? cgeConfiguracion.CGE_DIAS_HABILES
           : false;
 
-      let rads: any = Database.from("radicado_details as rd")
-        .join(
-          "INF_INFORMACION_BASICA as ib",
-          "rd.DRA_CODIGO_ASUNTO",
-          "ib.INF_CODIGO_ASUNTO"
-        )
-        .where("rd.DRA_CREADO_POR", id)
-        .andWhere("rd.DRA_ESTADO_RADICADO", "!=", "Evacuado");
-
-      rads = await rads.select(
-        "rd.created_at",
-        "ib.INF_TIMEPO_RESPUESTA",
-        "ib.INF_UNIDAD"
-      );
+        const RadicadoById = RadicadoDetail.query();
+        const rads = await RadicadoById.where((builder) => {
+          builder
+            .where(
+              "dra_id_destinatario",
+              `${id}`
+            )
+            .orWhereHas("rn_radicado_details_to_recipient_copy", (query) => {
+              query.where(
+                "rcd_id_destinatario",
+                `${id}`
+              );
+            });
+        })
+        .preload("rn_radicado_remitente_to_entity")
+        .preload("rn_radicado_destinatario_to_entity")
+        .preload("rn_radicado_details_to_recipient_copy")
+        .preload("rn_radicado_to_subject")
+        .preload("rn_radicado_to_subjectDocument")
+        .where("dra_estado_radicado", "Pendiente")
+        .select("*")
+        .limit(100);
 
       if (useWorkDays) {
         workdays = await Database.connection("citizen_attention")
@@ -335,15 +370,17 @@ export default class RadicadoDetailsController {
           useWorkDays
         );
 
-        if (rad.INF_UNIDAD === "Días") {
+        if (rad.rn_radicado_to_subject.ras_unidad == "Días") {
           const result = this.convertMinutesToDays(tiempoTranscurrido);
           tiempoTranscurrido = result.days;
         }
 
         const estado = this.determineRadicadoState(
           tiempoTranscurrido,
-          rad.INF_TIMEPO_RESPUESTA
+          rad.rn_radicado_to_subject.ras_tiempo_respuesta as any
         );
+
+        rad.dra_estado = estado;
         responseObj[estado] += 1;
         responseObj.total++;
       }
