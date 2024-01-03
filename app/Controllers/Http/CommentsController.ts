@@ -13,6 +13,32 @@ export default class CommentsController {
 
   public async store({ request, response }: HttpContextContract) {
     try {
+      const comment = new Comment();
+      comment.fill({
+        inf_radicado: request.body().dra_radicado,
+        inf_comentario: request.body().comentario,
+        inf_fecha_comentario: DateTime.fromMillis(Date.now()),
+      });
+      await comment.save();
+
+      return response
+        .status(200)
+        .send(
+          new ApiResponse(comment, EResponseCodes.OK, "Comentario Guardado")
+        );
+    } catch (err) {
+      console.log(err.message);
+      return response
+        .status(500)
+        .send(new ApiResponse([], EResponseCodes.FAIL, err.message));
+    }
+  }
+
+  public async storeCommentAndMovement({
+    request,
+    response,
+  }: HttpContextContract) {
+    try {
       await this.insertRadicadoMovement(request.body().dra_radicado);
       await this.updateRadicado(request.body());
       const comment = new Comment();

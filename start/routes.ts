@@ -218,6 +218,10 @@ Route.group(() => {
 
 //Radicado Comments
 Route.group(() => {
+  Route.post(
+    "/comment-movement",
+    "CommentsController.storeCommentAndMovement"
+  ).middleware("auth:MOVIMIENTOS,BANDEJA_DESTINATARIOS");
   Route.resource("/comment", "CommentsController")
     .apiOnly()
     .middleware({
@@ -249,4 +253,6 @@ Route.group(() => {
   Route.get("/:subjectId/document", "SubjectsController.subjectDocumentById");
   Route.resource("/subject", "SubjectsController").apiOnly();
   Route.resource("/subject-document", "SubjectsDocumentsController").apiOnly();
-}).prefix("/api/v1/document-management/subject").middleware("auth");
+})
+  .prefix("/api/v1/document-management/subject")
+  .middleware("auth");
