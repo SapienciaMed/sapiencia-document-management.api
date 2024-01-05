@@ -20,8 +20,8 @@ export default class extends BaseSchema {
         .comment("codigo usuario que crea el radicado");
       table.string("DRA_NOMBRE_RADICADOR", 100).notNullable();
       table.string("DRA_ID_REMITENTE", 30).notNullable();
-      table.string("DRA_CODIGO_ASUNTO", 20).references("RAS_ASUNTO.RAS_ID").notNullable();
-      table.integer("DRA_TIPO_ASUNTO").unsigned().references("RTA_TIPO_DOCUMENTOS.RTA_ID").notNullable();
+      table.string("DRA_CODIGO_ASUNTO", 20).notNullable();
+      table.integer("DRA_TIPO_ASUNTO").unsigned().notNullable();
       table.integer("DRA_PRIORIDAD_ASUNTO").unsigned().notNullable();
       table.string("DRA_ID_DESTINATARIO", 30).notNullable();
       table.integer("DRA_OPCIONES_RESPUESTA").unsigned().notNullable();
@@ -45,6 +45,8 @@ export default class extends BaseSchema {
       /**
        * Uses timestamptz for PostgreSQL and DATETIME2 for MSSQL
        */
+      table.date("DRA_FECHA_EVACUACION_ENTRADA").nullable();
+      table.date("DRA_FECHA_EVACUACION_SALIDA").nullable();
       table.timestamp("created_at").defaultTo(this.now());
       table.timestamp("updated_at").defaultTo(this.now());
     });

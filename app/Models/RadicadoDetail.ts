@@ -98,7 +98,6 @@ export default class RadicadoDetail extends BaseModel {
   @column({ columnName: "updated_at" })
   public updated_at: string;
 
-
   //dra_estado no pertenece a la base de datos es computada en findById
   @column()
   public dra_estado: any;

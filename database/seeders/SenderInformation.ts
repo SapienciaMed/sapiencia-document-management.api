@@ -4,6 +4,6 @@ import SenderInformationFactory from "Database/factories/SenderInformationFactor
 export default class extends BaseSeeder {
   public async run() {
     // Write your database queries inside the run method
-    await SenderInformationFactory.createMany(10);
+    await SenderInformationFactory.createMany(0);
   }
 }
