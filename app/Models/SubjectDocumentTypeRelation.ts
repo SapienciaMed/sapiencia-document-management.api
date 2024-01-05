@@ -14,10 +14,14 @@ export default class SubjectDocumentTypeRelation extends BaseModel {
   @column({ columnName: "ATD_ID_TIPO_DOCUMENTO" })
   public atd_id_tipo_documento: number;
 
-  @column.dateTime({ autoCreate: true })
+  @column.dateTime({ columnName: "createdAt", autoCreate: true })
   public createdAt: DateTime;
 
-  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  @column.dateTime({
+    columnName: "updatedAt",
+    autoCreate: true,
+    autoUpdate: true,
+  })
   public updatedAt: DateTime;
 
   // @hasOne(() => Subject, {
